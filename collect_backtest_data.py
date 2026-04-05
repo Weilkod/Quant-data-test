@@ -7,8 +7,8 @@ from datetime import datetime
 # ==========================================
 # 1. 설정 및 API 키 로드
 # ==========================================
-FMP_API_KEY = os.environ.get("FMP_API_KEY")
-FRED_API_KEY = os.environ.get("FRED_API_KEY")
+FMP_API_KEY = os.environ.get("Wz4nOOqLm8sTMyindByujmGybLmFRyY6")
+FRED_API_KEY = os.environ.get("ae2279093d5c518c3d15904012a2146b")
 
 START_DATE = "2013-06-01"
 END_DATE = "2024-12-31"
