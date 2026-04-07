@@ -9,7 +9,7 @@
 
 ## 진행중
 - [x] drive_uploader.py — 서비스 계정 인증, 3회 지수 백오프, 폴더 자동 생성
-- [ ] app.py (Streamlit UI)
+- [x] app.py — Streamlit UI (채널 입력, 업종 선택, 옵션, 진행 바, 다운로드)
 
 ## 브랜치 현황
 모든 작업 main에 머지 완료. 피처 브랜치 정리됨.
