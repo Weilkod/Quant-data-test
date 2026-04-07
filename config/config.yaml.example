@@ -3,8 +3,9 @@
 # config.yaml은 .gitignore에 포함되어 커밋되지 않습니다.
 
 instagram:
-  username: ""                # 인스타그램 로그인 계정 (선택사항, 비로그인으로도 공개 계정 수집 가능)
-  session_file: ""            # 세션 파일 경로 (예: ~/.config/instaloader/session-myuser)
+  username: ""                # 인스타그램 로그인 계정
+  password: ""                # 인스타그램 비밀번호
+  session_file: "config/session.json"  # 세션 파일 경로 (자동 생성됨)
   max_posts: 200              # 1회 수집 최대 게시물 수
   delay_min: 2                # 요청 간 최소 딜레이 (초)
   delay_max: 4                # 요청 간 최대 딜레이 (초)

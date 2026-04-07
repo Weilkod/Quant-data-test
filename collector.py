@@ -1,5 +1,5 @@
 """
-인스타그램 데이터 수집 모듈 — Instaloader 기반
+인스타그램 데이터 수집 모듈 — instagrapi 기반
 
 수집 항목:
     - 프로필 메타데이터 → raw/profile.json
@@ -17,16 +17,23 @@
 import json
 import logging
 import random
+import re
+import shutil
 import time
 import urllib.request
 from datetime import datetime, timezone
-from functools import wraps
 from pathlib import Path
 from typing import Any, Callable
 
-import instaloader
 import pandas as pd
 import yaml
+from instagrapi import Client
+from instagrapi.exceptions import (
+    ChallengeRequired,
+    LoginRequired,
+    PleaseWaitFewMinutes,
+    RateLimitError,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +43,7 @@ logger = logging.getLogger(__name__)
 _DEFAULT_CONFIG: dict = {
     "instagram": {
         "username": "",
+        "password": "",
         "session_file": "",
         "max_posts": 200,
         "delay_min": 2,
@@ -45,6 +53,13 @@ _DEFAULT_CONFIG: dict = {
         "retry_on_429": 3,
         "retry_wait_base": 60,
     }
+}
+
+# instagrapi 미디어 타입 → 보고서용 이름 매핑
+_MEDIA_TYPE_MAP: dict[int, str] = {
+    1: "GraphImage",      # 단일 이미지
+    2: "GraphVideo",      # 동영상/릴스
+    8: "GraphSidecar",    # 캐러셀 (앨범)
 }
 
 
@@ -105,8 +120,8 @@ def _retry_on_error(
         try:
             return func(*args, **kwargs)
         except (
-            instaloader.exceptions.QueryReturnedBadRequestException,
-            instaloader.exceptions.ConnectionException,
+            RateLimitError,
+            PleaseWaitFewMinutes,
             ConnectionError,
             TimeoutError,
         ) as e:
@@ -126,43 +141,58 @@ def _retry_on_error(
 
 
 # ──────────────────────────────────────────────
-# Instaloader 인스턴스 생성
+# instagrapi 클라이언트 생성
 # ──────────────────────────────────────────────
 
 
-def _create_loader(config: dict) -> instaloader.Instaloader:
-    """Instaloader 인스턴스 생성 및 세션 로드
+def _create_client(config: dict) -> Client:
+    """instagrapi Client 생성 및 로그인
 
-    다운로드 기능은 모두 비활성화 — 수동으로 처리함
+    세션 파일이 있으면 로드, 없으면 username/password로 로그인
     """
-    loader = instaloader.Instaloader(
-        download_pictures=False,
-        download_videos=False,
-        download_video_thumbnails=False,
-        download_geotags=False,
-        download_comments=False,
-        save_metadata=False,
-        compress_json=False,
-    )
+    cl = Client()
+    # 요청 간 딜레이 설정 (instagrapi 내부)
+    cl.delay_range = [
+        config["instagram"]["delay_min"],
+        config["instagram"]["delay_max"],
+    ]
 
     ig_config = config["instagram"]
     username = ig_config.get("username", "")
+    password = ig_config.get("password", "")
     session_file = ig_config.get("session_file", "")
 
-    if username and session_file:
+    # 1순위: 세션 파일로 로그인
+    if session_file:
         session_path = Path(session_file)
         if session_path.exists():
             try:
-                loader.load_session_from_file(username, str(session_path))
-                logger.info("세션 로드 완료 — 사용자: %s", username)
+                cl.load_settings(str(session_path))
+                cl.login(username, password) if username and password else None
+                logger.info("세션 로드 완료 — %s", session_path)
+                return cl
             except Exception as e:
-                logger.warning("세션 로드 실패: %s — 비로그인으로 진행", e)
-        else:
-            logger.warning("세션 파일 없음: %s — 비로그인으로 진행", session_path)
-    else:
-        logger.info("로그인 정보 미설정 — 비로그인으로 수집 진행")
+                logger.warning("세션 로드 실패: %s — 직접 로그인 시도", e)
 
-    return loader
+    # 2순위: username/password로 로그인
+    if username and password:
+        try:
+            cl.login(username, password)
+            # 세션 저장 (다음 실행 시 재사용)
+            if session_file:
+                cl.dump_settings(str(session_file))
+                logger.info("세션 저장 완료 — %s", session_file)
+            logger.info("로그인 완료 — 사용자: %s", username)
+            return cl
+        except ChallengeRequired:
+            logger.error("Instagram 챌린지(인증) 필요 — 브라우저에서 먼저 로그인 후 재시도")
+            raise
+        except Exception as e:
+            logger.error("로그인 실패: %s", e)
+            raise
+
+    logger.warning("로그인 정보 미설정 — 비로그인으로 수집 진행 (제한적)")
+    return cl
 
 
 # ──────────────────────────────────────────────
@@ -170,27 +200,32 @@ def _create_loader(config: dict) -> instaloader.Instaloader:
 # ──────────────────────────────────────────────
 
 
-def _collect_profile(profile: instaloader.Profile, raw_dir: Path) -> dict:
+def _collect_profile(cl: Client, channel: str, raw_dir: Path) -> dict:
     """프로필 메타데이터 수집 → raw/profile.json 저장
 
     Args:
-        profile: Instaloader Profile 객체
+        cl: instagrapi Client
+        channel: 채널명
         raw_dir: raw/ 디렉토리 경로
 
     Returns:
         프로필 데이터 딕셔너리
     """
+    user = cl.user_info_by_username(channel)
+
     profile_data = {
-        "username": profile.username,
-        "full_name": profile.full_name,
-        "followers": profile.followers,
-        "followees": profile.followees,
-        "biography": profile.biography,
-        "external_url": profile.external_url or "",
-        "mediacount": profile.mediacount,
-        "profile_pic_url": profile.profile_pic_url,
-        "is_verified": profile.is_verified,
-        "business_category_name": getattr(profile, "business_category_name", "") or "",
+        "username": user.username,
+        "full_name": user.full_name,
+        "followers": user.follower_count,
+        "followees": user.following_count,
+        "biography": user.biography or "",
+        "external_url": str(user.external_url) if user.external_url else "",
+        "mediacount": user.media_count,
+        "profile_pic_url": str(user.profile_pic_url) if user.profile_pic_url else "",
+        "is_verified": user.is_verified,
+        "business_category_name": user.business_category_name or "",
+        "is_private": user.is_private,
+        "pk": str(user.pk),
         "collected_at": datetime.now(timezone.utc).isoformat(),
     }
 
@@ -200,9 +235,9 @@ def _collect_profile(profile: instaloader.Profile, raw_dir: Path) -> dict:
 
     logger.info(
         "프로필 수집 완료 — @%s (팔로워: %s, 게시물: %s)",
-        profile.username,
-        f"{profile.followers:,}",
-        f"{profile.mediacount:,}",
+        user.username,
+        f"{user.follower_count:,}",
+        f"{user.media_count:,}",
     )
     return profile_data
 
@@ -213,7 +248,8 @@ def _collect_profile(profile: instaloader.Profile, raw_dir: Path) -> dict:
 
 
 def _collect_posts(
-    profile: instaloader.Profile,
+    cl: Client,
+    user_id: str,
     raw_dir: Path,
     max_posts: int,
     delay_min: float,
@@ -222,7 +258,8 @@ def _collect_posts(
     """게시물 데이터 수집 → raw/posts.csv 저장
 
     Args:
-        profile: Instaloader Profile 객체
+        cl: instagrapi Client
+        user_id: 사용자 PK (숫자 문자열)
         raw_dir: raw/ 디렉토리 경로
         max_posts: 최대 수집 게시물 수
         delay_min: 요청 간 최소 딜레이(초)
@@ -235,27 +272,35 @@ def _collect_posts(
     logger.info("게시물 수집 시작 (최대 %d개)", max_posts)
 
     try:
-        for i, post in enumerate(profile.get_posts()):
-            if i >= max_posts:
-                break
+        medias = cl.user_medias(int(user_id), amount=max_posts)
 
+        for i, media in enumerate(medias):
             try:
+                caption = media.caption_text or ""
+                # 캡션에서 해시태그/멘션 추출
+                hashtags = re.findall(r"#(\w+)", caption)
+                mentions = re.findall(r"@(\w+)", caption)
+
+                typename = _MEDIA_TYPE_MAP.get(media.media_type, "Unknown")
+
                 post_dict = {
-                    "shortcode": post.shortcode,
-                    "date_utc": post.date_utc.isoformat(),
-                    "caption": post.caption or "",
-                    "likes": post.likes,
-                    "comments": post.comments,
-                    "typename": post.typename,
-                    "caption_hashtags": ",".join(post.caption_hashtags),
-                    "caption_mentions": ",".join(post.caption_mentions),
-                    "url": post.url,
-                    "mediacount": post.mediacount,
+                    "shortcode": media.code,
+                    "pk": str(media.pk),
+                    "date_utc": media.taken_at.isoformat() if media.taken_at else "",
+                    "caption": caption,
+                    "likes": media.like_count,
+                    "comments": media.comment_count,
+                    "typename": typename,
+                    "caption_hashtags": ",".join(hashtags),
+                    "caption_mentions": ",".join(mentions),
+                    "url": f"https://www.instagram.com/p/{media.code}/",
+                    "mediacount": len(media.resources) if media.resources else 1,
+                    "thumbnail_url": str(media.thumbnail_url) if media.thumbnail_url else "",
                 }
                 posts_data.append(post_dict)
 
                 if (i + 1) % 10 == 0:
-                    logger.info("게시물 수집 진행: %d/%d", i + 1, max_posts)
+                    logger.info("게시물 수집 진행: %d/%d", i + 1, len(medias))
 
             except Exception as e:
                 logger.warning("게시물 수집 실패 (인덱스 %d): %s — 건너뜀", i, e)
@@ -266,7 +311,7 @@ def _collect_posts(
     except KeyboardInterrupt:
         logger.warning("사용자 중단 — 현재까지 수집된 %d개 게시물 저장", len(posts_data))
     except Exception as e:
-        logger.error("게시물 반복 중 에러: %s — 현재까지 수집된 데이터 저장", e)
+        logger.error("게시물 수집 중 에러: %s — 현재까지 수집된 데이터 저장", e)
     finally:
         # 수집된 데이터가 있으면 항상 저장
         if posts_data:
@@ -284,7 +329,7 @@ def _collect_posts(
 
 
 def _collect_comments(
-    loader: instaloader.Instaloader,
+    cl: Client,
     posts: list[dict],
     raw_dir: Path,
     delay_min: float,
@@ -293,8 +338,8 @@ def _collect_comments(
     """게시물별 댓글 수집 → raw/comments.csv 저장
 
     Args:
-        loader: Instaloader 인스턴스
-        posts: 게시물 딕셔너리 리스트 (_collect_posts에서 반환)
+        cl: instagrapi Client
+        posts: 게시물 딕셔너리 리스트
         raw_dir: raw/ 디렉토리 경로
         delay_min: 댓글 페이지네이션 추가 딜레이 최소(초)
         delay_max: 댓글 페이지네이션 추가 딜레이 최대(초)
@@ -306,6 +351,7 @@ def _collect_comments(
     try:
         for idx, post_data in enumerate(posts):
             shortcode = post_data["shortcode"]
+            media_pk = post_data["pk"]
             comment_count = post_data["comments"]
 
             # 댓글이 없는 게시물은 건너뜀
@@ -313,23 +359,23 @@ def _collect_comments(
                 continue
 
             try:
-                post = instaloader.Post.from_shortcode(loader.context, shortcode)
+                comments = cl.media_comments(media_pk, amount=0)
 
-                for comment in post.get_comments():
+                for comment in comments:
                     try:
                         comment_dict = {
                             "post_shortcode": shortcode,
-                            "comment_id": comment.id,
+                            "comment_id": str(comment.pk),
                             "text": comment.text,
-                            "owner_username": comment.owner.username,
-                            "created_at_utc": comment.created_at_utc.isoformat(),
+                            "owner_username": comment.user.username,
+                            "created_at_utc": comment.created_at.isoformat() if comment.created_at else "",
                         }
                         all_comments.append(comment_dict)
                     except Exception as e:
                         logger.debug("개별 댓글 파싱 실패 (%s): %s", shortcode, e)
 
-                    # 댓글 페이지네이션 딜레이
-                    _random_delay(delay_min, delay_max)
+                # 댓글 페이지네이션 딜레이
+                _random_delay(delay_min, delay_max)
 
             except Exception as e:
                 logger.warning(
@@ -367,7 +413,7 @@ def _collect_comments(
 
 
 def _download_images(
-    loader: instaloader.Instaloader,
+    cl: Client,
     posts: list[dict],
     raw_dir: Path,
     delay_min: float,
@@ -380,7 +426,7 @@ def _download_images(
     - 동영상(GraphVideo): 썸네일을 {shortcode}.jpg로 저장
 
     Args:
-        loader: Instaloader 인스턴스
+        cl: instagrapi Client
         posts: 게시물 딕셔너리 리스트
         raw_dir: raw/ 디렉토리 경로
         delay_min: 요청 간 최소 딜레이(초)
@@ -396,29 +442,45 @@ def _download_images(
     for idx, post_data in enumerate(posts):
         shortcode = post_data["shortcode"]
         typename = post_data["typename"]
-        url = post_data["url"]
+        media_pk = post_data["pk"]
+        thumbnail_url = post_data.get("thumbnail_url", "")
 
         try:
             if typename == "GraphSidecar":
                 # 캐러셀: 각 슬라이드 다운로드
                 try:
-                    post = instaloader.Post.from_shortcode(loader.context, shortcode)
-                    for slide_idx, node in enumerate(post.get_sidecar_nodes(), start=1):
-                        img_path = images_dir / f"{shortcode}_{slide_idx}.jpg"
-                        _download_single_image(node.display_url, img_path)
+                    paths = cl.album_download(int(media_pk), folder=str(images_dir))
+                    for slide_idx, src_path in enumerate(paths, start=1):
+                        dst_path = images_dir / f"{shortcode}_{slide_idx}.jpg"
+                        shutil.move(str(src_path), str(dst_path))
                         downloaded += 1
-                        _random_delay(delay_min, delay_max)
                 except Exception as e:
-                    # 캐러셀 순회 실패 시 대표 이미지만 다운로드
-                    logger.debug("캐러셀 슬라이드 접근 실패 (%s): %s — 대표 이미지만 저장", shortcode, e)
+                    logger.debug("캐러셀 다운로드 실패 (%s): %s — 썸네일만 저장", shortcode, e)
+                    if thumbnail_url:
+                        img_path = images_dir / f"{shortcode}.jpg"
+                        _download_url(thumbnail_url, img_path)
+                        downloaded += 1
+
+            elif typename == "GraphVideo":
+                # 동영상: 썸네일만 저장 (영상 자체는 불필요)
+                if thumbnail_url:
                     img_path = images_dir / f"{shortcode}.jpg"
-                    _download_single_image(url, img_path)
+                    _download_url(thumbnail_url, img_path)
                     downloaded += 1
+
             else:
-                # 단일 이미지 또는 동영상 썸네일
-                img_path = images_dir / f"{shortcode}.jpg"
-                _download_single_image(url, img_path)
-                downloaded += 1
+                # 단일 이미지
+                try:
+                    src_path = cl.photo_download(int(media_pk), folder=str(images_dir))
+                    dst_path = images_dir / f"{shortcode}.jpg"
+                    shutil.move(str(src_path), str(dst_path))
+                    downloaded += 1
+                except Exception as e:
+                    logger.debug("이미지 API 다운로드 실패 (%s): %s — URL로 시도", shortcode, e)
+                    if thumbnail_url:
+                        img_path = images_dir / f"{shortcode}.jpg"
+                        _download_url(thumbnail_url, img_path)
+                        downloaded += 1
 
         except Exception as e:
             logger.warning("이미지 다운로드 실패 — %s: %s — 건너뜀", shortcode, e)
@@ -429,18 +491,28 @@ def _download_images(
 
         _random_delay(delay_min, delay_max)
 
+    # 다운로드 후 instagrapi가 남긴 임시 파일 정리
+    _cleanup_temp_files(images_dir)
+
     logger.info("이미지 다운로드 완료 — 성공: %d, 실패: %d", downloaded, failed)
 
 
-def _download_single_image(url: str, save_path: Path) -> None:
-    """단일 이미지 URL을 파일로 저장
+def _download_url(url: str, save_path: Path) -> None:
+    """URL에서 파일 직접 다운로드
 
     Args:
-        url: 이미지 URL
+        url: 다운로드 URL
         save_path: 저장 경로
     """
     urllib.request.urlretrieve(url, str(save_path))
     logger.debug("이미지 저장: %s", save_path.name)
+
+
+def _cleanup_temp_files(images_dir: Path) -> None:
+    """instagrapi가 남긴 임시 파일(.json 등) 정리"""
+    for f in images_dir.iterdir():
+        if f.suffix in (".json", ".mp4") or f.name.endswith(".json.xz"):
+            f.unlink(missing_ok=True)
 
 
 # ──────────────────────────────────────────────
@@ -465,37 +537,39 @@ def collect(channel: str, data_dir: Path) -> bool:
     config = _load_config()
     ig = config["instagram"]
 
-    # Instaloader 인스턴스 생성
-    loader = _create_loader(config)
+    # instagrapi 클라이언트 생성
+    try:
+        cl = _create_client(config)
+    except Exception as e:
+        logger.error("Instagram 클라이언트 생성 실패: %s", e)
+        return False
 
-    # 프로필 로드
+    # 프로필 수집
     logger.info("프로필 접근 시도 — @%s", channel)
     try:
-        profile = _retry_on_error(
-            instaloader.Profile.from_username,
+        profile_data = _retry_on_error(
+            _collect_profile,
             ig["retry_on_429"],
             ig["retry_wait_base"],
-            loader.context,
+            cl,
             channel,
+            raw_dir,
         )
-    except instaloader.exceptions.ProfileNotExistsException:
-        logger.error("프로필을 찾을 수 없음 — @%s", channel)
-        return False
     except Exception as e:
         logger.error("프로필 접근 실패 — @%s: %s", channel, e)
         return False
 
     # 비공개 계정 확인
-    if profile.is_private:
+    if profile_data.get("is_private"):
         logger.error("비공개 계정 — @%s (공개 계정만 분석 가능)", channel)
         return False
 
-    # 1. 프로필 메타데이터 수집
-    _collect_profile(profile, raw_dir)
+    user_id = profile_data["pk"]
 
-    # 2. 게시물 수집
+    # 게시물 수집
     posts = _collect_posts(
-        profile,
+        cl,
+        user_id,
         raw_dir,
         max_posts=ig["max_posts"],
         delay_min=ig["delay_min"],
@@ -506,18 +580,18 @@ def collect(channel: str, data_dir: Path) -> bool:
         logger.warning("수집된 게시물이 없음 — @%s", channel)
         return True  # 프로필은 수집됐으므로 성공으로 처리
 
-    # 3. 댓글 수집
+    # 댓글 수집
     _collect_comments(
-        loader,
+        cl,
         posts,
         raw_dir,
         delay_min=ig["comment_delay_min"],
         delay_max=ig["comment_delay_max"],
     )
 
-    # 4. 이미지 다운로드
+    # 이미지 다운로드
     _download_images(
-        loader,
+        cl,
         posts,
         raw_dir,
         delay_min=ig["delay_min"],
