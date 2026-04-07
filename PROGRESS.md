@@ -14,6 +14,7 @@
 - [x] presets/fashion.yaml — S01~S10 카테고리, 저장/공유 보정 계수
 - [x] MD 파일 정합성 수정 — CLAUDE.md 참조 경로, INSTA.md D-5 구조도 실제에 맞게 수정
 - [x] 429 rate limit fix — 프록시 지원, RetryError 포착, 프로필 fallback, request_timeout
+- [x] app.py — API 설정 "입력 완료" 버튼 추가 (자격증명 저장 확인 UX 개선)
 
 ## 테스트 현황 (168개 전부 통과)
 - [x] test_estimator.py — 45개: 포맷 매핑, 팔로워 티어 경계값, 추정 계수, enrichment

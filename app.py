@@ -280,6 +280,10 @@ def main() -> None:
     st.title("📊 인스타그램 채널 분석기")
     st.caption("공개 데이터 기반 경쟁 채널 분석 보고서 자동 생성")
 
+    # 자격증명 확인 상태 초기화
+    if "credentials_saved" not in st.session_state:
+        st.session_state.credentials_saved = False
+
     # ── 사이드바: 입력 ──
     with st.sidebar:
         st.header("분석 설정")
@@ -312,6 +316,18 @@ def main() -> None:
             type="password",
             help="인스타그램 비밀번호",
         )
+
+        cred_button = st.button("✅ 입력 완료", use_container_width=True)
+        if cred_button:
+            if api_key_input or (ig_username and ig_password):
+                _apply_credentials(api_key_input, ig_username, ig_password)
+                st.session_state.credentials_saved = True
+                st.success("자격증명이 저장되었습니다.")
+            else:
+                st.warning("API Key 또는 Instagram 계정 정보를 입력해주세요.")
+
+        if st.session_state.credentials_saved and not cred_button:
+            st.info("✔ 자격증명 저장 완료")
 
         st.subheader("옵션")
         use_ai = st.checkbox("AI 분석 포함", value=True,
