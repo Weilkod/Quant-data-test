@@ -1,4 +1,5 @@
 /data/
+/mock_output/
 config/credentials.json
 config/config.yaml
 config/session.json
