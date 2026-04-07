@@ -100,6 +100,11 @@ def setup_logging(data_dir: Path) -> None:
     file_handler.setFormatter(logging.Formatter(log_format))
     root_logger.addHandler(file_handler)
 
+    # instagrapi 내부 로그 억제 (HTTP 요청마다 DEBUG 로그 → 파일 비대화 방지)
+    logging.getLogger("instagrapi").setLevel(logging.WARNING)
+    logging.getLogger("public_request").setLevel(logging.WARNING)
+    logging.getLogger("private_request").setLevel(logging.WARNING)
+
     # stderr 핸들러 — INFO 레벨, 사용자에게 진행 상황 표시
     stream_handler = logging.StreamHandler(sys.stderr)
     stream_handler.setLevel(logging.INFO)
