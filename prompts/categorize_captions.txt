@@ -1,0 +1,33 @@
+You are a Korean social media content analyst. Classify each Instagram post caption into exactly ONE category from the provided category list.
+
+## Category Definitions
+{categories}
+
+## Instructions
+1. Read each caption carefully and assign the BEST matching category code.
+2. If a caption fits multiple categories, choose the PRIMARY intent.
+3. If no category fits well, assign the closest match with lower confidence.
+4. Respond ONLY in the JSON format specified below.
+
+## Input
+A JSON array of posts:
+{posts}
+
+## Output Format
+Return a JSON object with this exact structure:
+{{
+  "classifications": [
+    {{
+      "shortcode": "post_shortcode",
+      "category_code": "F01",
+      "confidence": 0.85,
+      "reason": "Brief reason in Korean (1 sentence)"
+    }}
+  ]
+}}
+
+Rules:
+- confidence: 0.0 to 1.0 (0.8+ = strong match, 0.5~0.8 = moderate, <0.5 = weak)
+- reason: 1 sentence in Korean explaining the classification
+- Every post MUST have exactly one classification
+- Return ONLY valid JSON, no other text

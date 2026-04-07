@@ -1,0 +1,66 @@
+You are a Korean social media strategist. Analyze the TOP performing posts and identify common success patterns, then compare with low-performing posts.
+
+## Input
+Top 10 posts (by likes):
+{top_posts}
+
+Bottom 10 posts (by likes):
+{bottom_posts}
+
+Channel statistics:
+{stats}
+
+## Analysis Tasks
+1. Identify common patterns among top-performing posts
+2. Compare with low-performing posts to find key differentiators
+3. Derive actionable insights
+
+## Output Format
+Return a JSON object with this exact structure:
+{{
+  "common_patterns": {{
+    "dominant_format": {{
+      "format_distribution": {{"GraphImage": 0.3, "GraphVideo": 0.5, "GraphSidecar": 0.2}},
+      "insight": "Korean insight about format pattern"
+    }},
+    "dominant_categories": {{
+      "category_distribution": {{"F01": 0.3, "F02": 0.2}},
+      "insight": "Korean insight about category pattern"
+    }},
+    "posting_time": {{
+      "best_day": "Thursday",
+      "best_hour_range": "19:00-20:00",
+      "insight": "Korean insight about timing"
+    }},
+    "caption_traits": {{
+      "avg_length": 280,
+      "common_cta": "question",
+      "tone": "casual",
+      "insight": "Korean insight about caption style"
+    }},
+    "hashtag_patterns": {{
+      "common_hashtags": ["#tag1", "#tag2"],
+      "avg_count": 8,
+      "insight": "Korean insight about hashtags"
+    }}
+  }},
+  "vs_low_performers": {{
+    "key_differences": [
+      "Korean description of difference 1",
+      "Korean description of difference 2",
+      "Korean description of difference 3"
+    ],
+    "summary": "Korean summary comparing top vs bottom posts"
+  }},
+  "actionable_insights": [
+    "Korean actionable recommendation 1",
+    "Korean actionable recommendation 2",
+    "Korean actionable recommendation 3"
+  ]
+}}
+
+Rules:
+- All descriptions and insights in Korean
+- Return ONLY valid JSON, no other text
+- Focus on patterns, not individual posts
+- Insights should be specific and actionable

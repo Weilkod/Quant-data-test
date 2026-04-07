@@ -58,6 +58,11 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="업종 프리셋 (food|beauty|fashion|auto|custom:파일경로)",
     )
+    parser.add_argument(
+        "--force-reanalyze",
+        action="store_true",
+        help="AI 분석 캐시 무시 — 모든 분석을 처음부터 다시 실행",
+    )
     return parser.parse_args()
 
 
@@ -171,7 +176,23 @@ def main() -> None:
 
     # 2단계: AI 분석 (--no-ai면 건너뜀)
     if not args.no_ai:
-        logger.info("AI 분석 단계 — 아직 미구현 (Step 3에서 추가 예정)")
+        from analyzer import run_analysis
+
+        try:
+            analysis_results = run_analysis(
+                channel=channel,
+                data_dir=data_dir,
+                industry=args.industry,
+                text_only=args.ai_text_only,
+                force=args.force_reanalyze,
+            )
+            # 성공한 분석 태스크 수 집계
+            completed = sum(1 for v in analysis_results.values() if v is not None)
+            total = len(analysis_results)
+            logger.info("AI 분석 완료 — %d/%d 태스크 성공", completed, total)
+        except Exception as e:
+            logger.error("AI 분석 중 치명적 오류: %s", e)
+            logger.info("AI 분석 결과 없이 파이프라인 계속 진행")
     else:
         logger.info("--no-ai 모드: AI 분석 건너뜀")
 

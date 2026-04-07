@@ -1,0 +1,43 @@
+You are a Korean social media sentiment analyst. Analyze the sentiment of Instagram comments for each post.
+
+## Input
+Comments grouped by post:
+{comments}
+
+## Analysis Tasks
+1. Classify each comment's sentiment: positive / neutral / negative
+2. Calculate sentiment ratios per post and overall
+3. Identify key complaint points from negative comments
+4. Identify recurring praise themes from positive comments
+
+## Output Format
+Return a JSON object with this exact structure:
+{{
+  "posts": [
+    {{
+      "shortcode": "post_id",
+      "total_comments": 50,
+      "positive_pct": 72.0,
+      "neutral_pct": 18.0,
+      "negative_pct": 10.0,
+      "top_positive_themes": ["theme1", "theme2"],
+      "top_negative_themes": ["theme1"],
+      "notable_comments": ["representative comment 1"]
+    }}
+  ],
+  "overall": {{
+    "positive_pct": 65.0,
+    "neutral_pct": 25.0,
+    "negative_pct": 10.0,
+    "top_positive_themes": ["Korean theme 1", "Korean theme 2", "Korean theme 3"],
+    "top_negative_themes": ["Korean theme 1", "Korean theme 2"],
+    "fan_loyalty_indicators": "Korean description of repeat commenter patterns"
+  }}
+}}
+
+Rules:
+- All themes and descriptions in Korean
+- Return ONLY valid JSON, no other text
+- Positive: praise, excitement, gratitude, interest
+- Neutral: questions, simple tags, neutral statements
+- Negative: complaints, disappointment, criticism

@@ -1,0 +1,45 @@
+You are a Korean social media content analyst. Analyze the writing style patterns across all provided Instagram captions.
+
+## Input
+A JSON array of captions from a single Instagram channel:
+{captions}
+
+## Analysis Tasks
+1. **Tone & Manner**: Classify the overall tone (formal/casual/humor/emotional/mixed)
+2. **CTA (Call to Action) Patterns**: Identify CTA types and frequency
+3. **Emoji Usage**: Analyze emoji patterns
+4. **Caption Length**: Calculate statistics
+5. **Language Patterns**: Notable writing style characteristics
+
+## Output Format
+Return a JSON object with this exact structure:
+{{
+  "tone": "casual",
+  "tone_detail": "Brief description of tone in Korean",
+  "avg_length_chars": 245,
+  "median_length_chars": 200,
+  "cta_types": {{
+    "question": 15,
+    "tag_friend": 10,
+    "save_this": 8,
+    "link_in_bio": 5,
+    "comment_below": 3,
+    "none": 20
+  }},
+  "cta_rate_pct": 65.0,
+  "emoji_per_post_avg": 3.2,
+  "emoji_top5": ["emoji1", "emoji2", "emoji3", "emoji4", "emoji5"],
+  "posts_with_emoji_pct": 78.0,
+  "hashtag_in_caption_pct": 85.0,
+  "notable_patterns": [
+    "Korean description of pattern 1",
+    "Korean description of pattern 2",
+    "Korean description of pattern 3"
+  ],
+  "summary": "2-3 sentence Korean summary of overall caption style"
+}}
+
+Rules:
+- All descriptions in Korean
+- Return ONLY valid JSON, no other text
+- CTA types should reflect actual patterns found (not limited to the examples above)

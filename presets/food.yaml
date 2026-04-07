@@ -1,0 +1,98 @@
+# 푸드 미디어 업종 프리셋
+# INSTA.md 부록 B-2 기반
+
+industry: food
+name: 푸드 미디어
+
+categories:
+  - code: F01
+    name: 프랜차이즈 신메뉴 리뷰
+    definition: 프랜차이즈 브랜드의 신메뉴/한정메뉴 소개 및 리뷰
+    keywords: [브랜드명, 신메뉴, 신상, 출시, 한정]
+    save_modifier: 1.0
+    share_modifier: 1.10
+
+  - code: F02
+    name: 맛집/음식점 추천 큐레이션
+    definition: 특정 지역/테마 기반 음식점 추천 리스트
+    keywords: [맛집, 추천, TOP, 리스트, 동, 역]
+    save_modifier: 1.24
+    share_modifier: 1.10
+
+  - code: F03
+    name: 꿀조합/레시피 팁
+    definition: 음식 조합법, 간단 레시피, 꿀팁
+    keywords: [조합, 레시피, 꿀팁, 만들기, 이렇게 먹어]
+    save_modifier: 1.24
+    share_modifier: 1.0
+
+  - code: F04
+    name: 먹방/푸드 엔터테인먼트
+    definition: 먹방 영상, 음식 관련 재미 콘텐츠, 챌린지
+    keywords: [먹방, 챌린지, 대왕, 도전, ASMR]
+    save_modifier: 0.85
+    share_modifier: 1.12
+
+  - code: F05
+    name: 편의점/간편식 추천
+    definition: 편의점/마트 신상품 리뷰 및 추천
+    keywords: [편의점, GS25, CU, 이마트, 신상]
+    save_modifier: 1.24
+    share_modifier: 1.10
+
+  - code: F06
+    name: 카페/디저트 소개
+    definition: 카페, 베이커리, 디저트 전문점 소개
+    keywords: [카페, 디저트, 케이크, 빵, 마카롱]
+    save_modifier: 1.10
+    share_modifier: 1.10
+
+  - code: F07
+    name: 시즌/트렌드 음식
+    definition: 계절 음식, 유행 음식 트렌드 소개
+    keywords: [요즘, 핫한, 트렌드, 올해, 여름, 겨울]
+    save_modifier: 1.0
+    share_modifier: 1.12
+
+  - code: F08
+    name: 브랜드 협찬/광고
+    definition: 유료 광고, 협찬 콘텐츠
+    keywords: ["#광고", "#협찬", "#제공", ad, sponsored]
+    save_modifier: 0.70
+    share_modifier: 0.60
+
+  - code: F09
+    name: UGC/팔로워 제보
+    definition: 팔로워 제보 기반 콘텐츠, 리그램
+    keywords: [제보, DM, 태그, 리그램, 팔로워 추천]
+    save_modifier: 0.85
+    share_modifier: 1.0
+
+  - code: F10
+    name: 이벤트/프로모션
+    definition: 할인, 1+1, 기프티콘, 이벤트 정보
+    keywords: [이벤트, 할인, 무료, 증정, 프로모션]
+    save_modifier: 1.0
+    share_modifier: 1.0
+
+competitors:
+  - name: 쿠캣매거진
+    id: cookat.magazine
+    followers: 1000000
+    note: F&B / Place 전문 매거진
+  - name: 쿠캣 공식
+    id: cookat.official
+    followers: 59000
+    note: 간편식 커머스 채널
+  - name: 뽀 먹스타그램
+    id: bbo_muksta
+    followers: 180000
+    note: 전국 맛집 큐레이션
+  - name: 요미 먹스타그램
+    id: biteofyommy
+    followers: 148000
+    note: 맛집 리뷰 큐레이션
+  - name: 서울맛집
+    id: seouleating
+    followers: 11000
+    note: 서울 음식점 큐레이션

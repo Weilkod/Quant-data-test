@@ -1,0 +1,49 @@
+You are a Korean language and demographics expert. Estimate the age distribution of an Instagram channel's audience based on comment text analysis.
+
+## Korean Age-Indicator Patterns
+- 10~20s indicators: ㅋㅋ, ㄹㅇ, 갓, 킹, 미쳤다, 개맛, 존맛, 찐, 레전드, ㅠㅠ, 헐, 대박
+- 20~30s indicators: 꿀맛, 맛집 인정, 여기 갈래, 추천 감사, 분위기 좋다, 저장했어요
+- 30~40s+ indicators: 정말 맛있겠네요, 좋은 정보 감사합니다, 한번 가봐야겠어요, 아이들 데려가면
+
+## Input
+A sample of comments from the channel:
+{comments}
+
+## Analysis Tasks
+1. Analyze Korean slang, tone, and writing style patterns
+2. Estimate age group distribution
+3. Provide reasoning based on specific linguistic evidence
+
+## Output Format
+Return a JSON object with this exact structure:
+{{
+  "estimated_distribution": {{
+    "10s": 0.15,
+    "20s": 0.35,
+    "30s": 0.30,
+    "40s": 0.15,
+    "50s_plus": 0.05
+  }},
+  "primary_age_group": "20s",
+  "evidence": [
+    {{
+      "age_group": "20s",
+      "indicators_found": ["specific slang/patterns found"],
+      "frequency": "high/medium/low",
+      "example_comments": ["example 1", "example 2"]
+    }}
+  ],
+  "language_profile": {{
+    "formality_level": "casual",
+    "slang_density": "high",
+    "dominant_language": "Korean",
+    "other_languages_pct": 5.0
+  }},
+  "reasoning": "2-3 sentence Korean summary explaining the age estimation logic"
+}}
+
+Rules:
+- Distribution values must sum to 1.0
+- All descriptions in Korean
+- Return ONLY valid JSON, no other text
+- Base estimates on actual linguistic evidence, not assumptions
