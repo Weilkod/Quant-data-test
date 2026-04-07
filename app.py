@@ -56,6 +56,36 @@ try:
 except Exception:
     pass  # secrets 미설정 시 무시 (로컬 실행 등)
 
+
+def _apply_credentials(
+    api_key: str,
+    ig_username: str,
+    ig_password: str,
+) -> None:
+    """UI에서 입력받은 자격증명을 환경변수/config.yaml에 반영"""
+    # Anthropic API 키 → 환경변수 (anthropic 라이브러리가 자동 인식)
+    if api_key:
+        os.environ["ANTHROPIC_API_KEY"] = api_key
+
+    # Instagram 계정 → config.yaml 기록 (collector.py가 읽음)
+    if ig_username and ig_password:
+        config_path = Path("config/config.yaml")
+        config_path.parent.mkdir(parents=True, exist_ok=True)
+        config_content = (
+            "instagram:\n"
+            f'  username: "{ig_username}"\n'
+            f'  password: "{ig_password}"\n'
+            '  session_file: "config/session.json"\n'
+            "  max_posts: 20\n"
+            "  delay_min: 2\n"
+            "  delay_max: 4\n"
+            "  comment_delay_min: 1\n"
+            "  comment_delay_max: 2\n"
+            "  retry_on_429: 3\n"
+            "  retry_wait_base: 60\n"
+        )
+        config_path.write_text(config_content, encoding="utf-8")
+
 # ──────────────────────────────────────────────
 # 로깅 설정
 # ──────────────────────────────────────────────
@@ -266,6 +296,22 @@ def main() -> None:
         )
         industry = INDUSTRY_OPTIONS[industry_label]
 
+        st.subheader("API 설정")
+        api_key_input = st.text_input(
+            "Anthropic API Key",
+            type="password",
+            help="입력하지 않으면 환경변수 또는 config.yaml의 설정값을 사용합니다",
+        )
+        ig_username = st.text_input(
+            "Instagram ID",
+            help="인스타그램 로그인 계정 (입력하지 않으면 기존 설정 사용)",
+        )
+        ig_password = st.text_input(
+            "Instagram Password",
+            type="password",
+            help="인스타그램 비밀번호",
+        )
+
         st.subheader("옵션")
         use_ai = st.checkbox("AI 분석 포함", value=True,
                              help="Claude API를 사용한 텍스트 분석 (비용 발생)")
@@ -283,13 +329,6 @@ def main() -> None:
 
         st.divider()
 
-        # 예상 비용 표시
-        if use_ai:
-            cost = "~$1.42" if use_vision else "~$0.65"
-        else:
-            cost = "$0"
-        st.metric("예상 API 비용", cost)
-
         run_button = st.button("🚀 분석 시작", type="primary", use_container_width=True)
 
     # ── 메인 영역 ──
@@ -302,6 +341,9 @@ def main() -> None:
         if not channel:
             st.error("유효한 채널명을 입력해주세요.")
             return
+
+        # UI 입력 자격증명 적용
+        _apply_credentials(api_key_input, ig_username, ig_password)
 
         st.subheader(f"@{channel} 분석")
 
