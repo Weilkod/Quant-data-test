@@ -525,15 +525,17 @@ def _cleanup_temp_files(images_dir: Path) -> None:
 # ──────────────────────────────────────────────
 
 
-def collect(channel: str, data_dir: Path) -> bool:
+def collect(channel: str, data_dir: Path, with_comments: bool = False) -> bool:
     """인스타그램 채널 데이터 수집 — 메인 진입점
 
-    프로필, 게시물, 댓글, 이미지를 순차적으로 수집하여
+    프로필, 게시물, 이미지를 순차적으로 수집하여
     data/{channel}/raw/ 디렉토리에 저장합니다.
+    댓글 수집은 기본 비활성화 (--with-comments 플래그로 활성화).
 
     Args:
         channel: 인스타그램 채널명 (@없이)
         data_dir: data/{channel}/ 경로
+        with_comments: True면 댓글도 수집 (기본 False — Instagram API 제한으로 비활성화)
 
     Returns:
         True: 수집 성공 (일부 실패 포함), False: 치명적 에러 (프로필 접근 불가 등)
@@ -585,14 +587,17 @@ def collect(channel: str, data_dir: Path) -> bool:
         logger.warning("수집된 게시물이 없음 — @%s", channel)
         return True  # 프로필은 수집됐으므로 성공으로 처리
 
-    # 댓글 수집
-    _collect_comments(
-        cl,
-        posts,
-        raw_dir,
-        delay_min=ig["comment_delay_min"],
-        delay_max=ig["comment_delay_max"],
-    )
+    # 댓글 수집 (기본 비활성화 — --with-comments 플래그로 활성화)
+    if with_comments:
+        _collect_comments(
+            cl,
+            posts,
+            raw_dir,
+            delay_min=ig["comment_delay_min"],
+            delay_max=ig["comment_delay_max"],
+        )
+    else:
+        logger.info("댓글 수집 건너뜀 (활성화: --with-comments 플래그 사용)")
 
     # 이미지 다운로드
     _download_images(

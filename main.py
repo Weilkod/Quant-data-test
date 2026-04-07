@@ -2,8 +2,9 @@
 인스타그램 채널 분석기 — CLI 진입점
 
 사용법:
-    python main.py @channel_name              # 전체 파이프라인
+    python main.py @channel_name              # 전체 파이프라인 (댓글 제외)
     python main.py @channel_name --no-ai      # AI 분석 없이 수집+통계만
+    python main.py @channel_name --with-comments  # 댓글 포함 수집
     python main.py @channel_name --skip-collect  # 수집 건너뛰고 기존 데이터 분석
 """
 
@@ -42,6 +43,11 @@ def parse_args() -> argparse.Namespace:
         "--no-upload",
         action="store_true",
         help="Google Drive 업로드 생략",
+    )
+    parser.add_argument(
+        "--with-comments",
+        action="store_true",
+        help="댓글 수집 활성화 (기본 비활성화 — Instagram API 제한으로 401 에러 빈발)",
     )
     parser.add_argument(
         "--industry",
@@ -117,7 +123,7 @@ def main() -> None:
     if not args.skip_collect:
         from collector import collect
 
-        success = collect(channel, data_dir)
+        success = collect(channel, data_dir, with_comments=args.with_comments)
         if not success:
             logger.error("데이터 수집 실패 — @%s", channel)
             sys.exit(1)

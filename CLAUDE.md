@@ -1,7 +1,7 @@
 # CLAUDE.md — Instagram Channel Analyzer
 
 ## Project Overview
-CLI pipeline: `python main.py @channel [--no-ai|--ai-text-only|--skip-collect|--no-upload]`
+CLI pipeline: `python main.py @channel [--no-ai|--ai-text-only|--skip-collect|--no-upload|--with-comments]`
 Flow: instagrapi → pandas → Claude API → python-pptx/Jinja2 → Google Drive
 
 ## Architecture
@@ -12,11 +12,12 @@ Flow: instagrapi → pandas → Claude API → python-pptx/Jinja2 → Google Dri
 
 ## instagrapi Rules (collector.py)
 - **Random delay 2–4s between every request** — never skip
-- Comment pagination: additional 1–2s delay per page
+- **댓글 수집 기본 비활성화** — `--with-comments` 플래그로 활성화 (Instagram API 제한으로 401 에러 빈발)
+- Comment pagination (활성화 시): additional 1–2s delay per page
 - Max 200 posts per run; reuse session via `Client.load_settings()` / `Client.login()`
 - On 429: wait 60s, retry up to 3x with exponential backoff
 - **Individual post/comment failures → skip & log, never abort pipeline**
-- Save: `raw/profile.json`, `raw/posts.csv`, `raw/comments.csv`, `raw/images/{shortcode}.jpg`
+- Save: `raw/profile.json`, `raw/posts.csv`, `raw/images/{shortcode}.jpg` (댓글 활성화 시 `raw/comments.csv` 추가)
 
 ## Claude API Rules (analyzer.py)
 **Model assignment (strict):**
