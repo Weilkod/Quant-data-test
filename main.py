@@ -9,9 +9,12 @@
 """
 
 import argparse
+import json
 import logging
 import sys
 from pathlib import Path
+
+import pandas as pd
 
 
 def parse_args() -> argparse.Namespace:
@@ -142,6 +145,29 @@ def main() -> None:
                 logger.error("필수 파일 없음: %s (--skip-collect 사용 시 기존 데이터 필요)", f)
                 sys.exit(1)
         logger.info("기존 수집 데이터 사용 — @%s", channel)
+
+    # 1.5단계: 추정치 산출 (항상 실행 — 순수 계산, API 비용 $0)
+    from estimator import load_coefficients, enrich_posts, aggregate_by_format
+
+    coeffs = load_coefficients()
+    with open(data_dir / "raw" / "profile.json", encoding="utf-8") as f:
+        profile = json.load(f)
+    posts_df = pd.read_csv(data_dir / "raw" / "posts.csv")
+
+    enriched = enrich_posts(posts_df, profile["followers"], coeffs)
+    enriched.to_csv(
+        data_dir / "analysis" / "posts_enriched.csv",
+        index=False,
+        encoding="utf-8-sig",
+    )
+
+    format_stats = aggregate_by_format(enriched)
+    format_stats.to_csv(
+        data_dir / "analysis" / "format_stats.csv",
+        index=False,
+        encoding="utf-8-sig",
+    )
+    logger.info("추정치 산출 완료 → analysis/posts_enriched.csv, format_stats.csv")
 
     # 2단계: AI 분석 (--no-ai면 건너뜀)
     if not args.no_ai:

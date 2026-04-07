@@ -1,15 +1,101 @@
 # 추정치 산출 계수 (estimator.py에서 사용)
 # 출처: INSTA.md 부록 A 참조
-# Step 2 (estimator.py) 구현 시 채워질 예정
+# config/config.yaml과 달리 이 파일은 git에 커밋됩니다.
 
-# 포맷별 저장 계수 (저장/좋아요)
-# save_coefficients:
-#   reels: 0.082        # 출처: Sprout Social 2025
-#   carousel: 0.055     # 출처: Zebracat 2025 (전체 평균 x 1.4)
-#   image: 0.028        # 출처: Socialinsider 규모별 비율 역산
+# ──────────────────────────────────────────────
+# A-1. 포맷별 저장 계수 (저장/좋아요)
+# ──────────────────────────────────────────────
+save_coefficients:
+  reels: 0.082        # Sprout Social 2025 릴스 평균 (좋아요 475 / 저장 39 = 8.2%)
+  carousel: 0.055     # 전체 평균 × 1.4 (Zebracat 2025: 캐러셀이 이미지 대비 1.4배 저장)
+  image: 0.028        # Socialinsider 규모별 비율 역산, 전체 평균 대비 저장 낮음
 
-# 포맷별 공유 계수 (공유/좋아요)
-# share_coefficients:
-#   reels: 0.189        # 출처: Sprout Social / Statista 2025
-#   carousel: 0.08      # 출처: Dash Social 상대 비율 역산
-#   image: 0.05         # 가장 낮은 공유율
+# A-1. 카테고리별 저장 보정 계수
+save_category_modifiers:
+  educational: 1.24   # 교육/정보성(레시피, 꿀조합): 인포그래픽 +24% 저장률 (Zebracat 2025)
+  entertainment: 0.85 # 먹방/챌린지: 소비형 콘텐츠 저장 낮음
+  sponsored: 0.70     # 브랜드 협찬/광고: 광고 인지 시 저장 저하
+  default: 1.0        # 기본값 (카테고리 미분류 시)
+
+# ──────────────────────────────────────────────
+# A-2. 포맷별 공유 계수 (공유/좋아요)
+# ──────────────────────────────────────────────
+share_coefficients:
+  reels: 0.189        # Sprout Social / Statista 2025 (좋아요 475 / 공유 90+ = 18.9%)
+  carousel: 0.08      # 릴스 대비 공유 낮음, Dash Social 상대 비율 역산
+  image: 0.05         # 가장 낮은 공유율
+
+# A-2. 카테고리별 공유 보정 계수
+share_category_modifiers:
+  entertainment: 1.12 # 먹방/엔터테인먼트: 밈 콘텐츠 +12% 공유율 (Zebracat 2025)
+  curation: 1.10      # 맛집 큐레이션/리뷰: "같이 가자" 태그 패턴
+  sponsored: 0.60     # 브랜드 협찬/광고
+  default: 1.0        # 기본값 (카테고리 미분류 시)
+
+# ──────────────────────────────────────────────
+# A-3. 팔로워 규모별 평균 조회 수 (Socialinsider 2026, 2025년 데이터)
+# 키: 팔로워 구간 상한값 (해당 구간 이하)
+# ──────────────────────────────────────────────
+views_by_tier:
+  - max_followers: 5000
+    reels: 580
+    carousel: 993
+    image: 417
+  - max_followers: 10000
+    reels: 1000
+    carousel: 2117
+    image: 1068
+  - max_followers: 50000
+    reels: 2460
+    carousel: 4275
+    image: 2340
+  - max_followers: 100000
+    reels: 6095
+    carousel: 11597
+    image: 7405
+  - max_followers: 1000000
+    reels: 16035
+    carousel: 35370
+    image: 22900
+
+# 1M+ 팔로워용 (데이터 없어 100K~1M 값 사용)
+views_fallback_over_1m:
+  reels: 16035
+  carousel: 35370
+  image: 22900
+
+# ──────────────────────────────────────────────
+# A-4. 인게이지먼트율 벤치마크 (참고용, 비교에 사용)
+# Socialinsider 2026 전체 업종 평균
+# ──────────────────────────────────────────────
+engagement_benchmarks:
+  reels: 0.52         # 2025년 기준
+  carousel: 0.55
+  image: 0.37
+  overall: 0.48
+  food_beverage: 1.3  # Zebracat 2025 푸드 관련 계정 평균
+
+# ──────────────────────────────────────────────
+# A-4. 댓글 벤치마크 (Socialinsider 2026, 참고용)
+# ──────────────────────────────────────────────
+comments_benchmarks:
+  - max_followers: 5000
+    reels: 3
+    carousel: 2
+    image: 1
+  - max_followers: 10000
+    reels: 6
+    carousel: 4
+    image: 1
+  - max_followers: 50000
+    reels: 12
+    carousel: 10
+    image: 4
+  - max_followers: 100000
+    reels: 22
+    carousel: 15
+    image: 10
+  - max_followers: 1000000
+    reels: 60
+    carousel: 40
+    image: 38
