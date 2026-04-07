@@ -422,7 +422,7 @@ def _download_images(
     """게시물 이미지 다운로드 → raw/images/{shortcode}.jpg
 
     - 단일 이미지(GraphImage): {shortcode}.jpg
-    - 캐러셀(GraphSidecar): {shortcode}_1.jpg, {shortcode}_2.jpg, ...
+    - 캐러셀(GraphSidecar): {shortcode}_1.jpg ~ {shortcode}_5.jpg (최대 5장)
     - 동영상(GraphVideo): 썸네일을 {shortcode}.jpg로 저장
 
     Args:
@@ -447,13 +447,18 @@ def _download_images(
 
         try:
             if typename == "GraphSidecar":
-                # 캐러셀: 각 슬라이드 다운로드
+                # 캐러셀: 최대 5장까지만 다운로드 (비용 절감)
                 try:
                     paths = cl.album_download(int(media_pk), folder=str(images_dir))
+                    max_slides = 5
                     for slide_idx, src_path in enumerate(paths, start=1):
-                        dst_path = images_dir / f"{shortcode}_{slide_idx}.jpg"
-                        shutil.move(str(src_path), str(dst_path))
-                        downloaded += 1
+                        if slide_idx <= max_slides:
+                            dst_path = images_dir / f"{shortcode}_{slide_idx}.jpg"
+                            shutil.move(str(src_path), str(dst_path))
+                            downloaded += 1
+                        else:
+                            # 초과분 임시 파일 삭제
+                            Path(src_path).unlink(missing_ok=True)
                 except Exception as e:
                     logger.debug("캐러셀 다운로드 실패 (%s): %s — 썸네일만 저장", shortcode, e)
                     if thumbnail_url:

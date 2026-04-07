@@ -30,6 +30,7 @@ Flow: instagrapi → pandas → Claude API → python-pptx/Jinja2 → Google Dri
 - Batch captions as JSON array in 1 call, not per-post calls
 - Prompts live in `prompts/*.txt`, not inline strings
 - **Vision: resize to ≤1024px before base64 encoding. Max 20 images per call.**
+- **캐러셀 이미지: 게시물당 최대 5장만 수집·분석 (비용 절감)**
 - Cache results to `analysis/{task}.json`; skip re-analysis if file exists unless `--force-reanalyze`
 - Log estimated token count before each call; warn if total pipeline cost > $5
 
