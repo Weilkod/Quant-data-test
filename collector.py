@@ -28,6 +28,7 @@ from typing import Any, Callable
 import pandas as pd
 import yaml
 from instagrapi import Client
+from requests.exceptions import RetryError
 from instagrapi.exceptions import (
     ChallengeRequired,
     LoginRequired,
@@ -52,6 +53,7 @@ _DEFAULT_CONFIG: dict = {
         "comment_delay_max": 2,
         "retry_on_429": 3,
         "retry_wait_base": 60,
+        "proxy": "",
     }
 }
 
@@ -124,6 +126,7 @@ def _retry_on_error(
             PleaseWaitFewMinutes,
             ConnectionError,
             TimeoutError,
+            RetryError,
         ) as e:
             if attempt == max_retries:
                 logger.error("최대 재시도(%d회) 초과 — 포기: %s", max_retries, e)
@@ -151,6 +154,7 @@ def _create_client(config: dict) -> Client:
     세션 파일이 있으면 로드, 없으면 username/password로 로그인
     """
     cl = Client()
+    cl.request_timeout = 15
     # 요청 간 딜레이 설정 (instagrapi 내부)
     cl.delay_range = [
         config["instagram"]["delay_min"],
@@ -161,6 +165,13 @@ def _create_client(config: dict) -> Client:
     username = ig_config.get("username", "")
     password = ig_config.get("password", "")
     session_file = ig_config.get("session_file", "")
+
+    # 프록시 설정 (클라우드 환경에서 429 에러 회피용)
+    proxy = ig_config.get("proxy", "")
+    if proxy:
+        cl.set_proxy(proxy)
+        # 자격증명 제외하여 안전하게 로깅
+        logger.info("프록시 설정 완료 — %s", proxy.split("@")[-1] if "@" in proxy else proxy)
 
     # 1순위: 세션 파일로 로그인
     if session_file:
@@ -211,7 +222,11 @@ def _collect_profile(cl: Client, channel: str, raw_dir: Path) -> dict:
     Returns:
         프로필 데이터 딕셔너리
     """
-    user = cl.user_info_by_username(channel)
+    try:
+        user = cl.user_info_by_username(channel)
+    except Exception as e:
+        logger.warning("user_info_by_username 실패: %s — v1 API로 재시도", e)
+        user = cl.user_info_by_username_v1(channel)
 
     profile_data = {
         "username": user.username,
