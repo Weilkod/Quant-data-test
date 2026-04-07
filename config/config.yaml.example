@@ -18,7 +18,7 @@ instagram:
 # claude:
 #   api_key: ""
 
-# Google Drive 설정 (Step 5에서 사용)
-# drive:
-#   credentials_file: "config/credentials.json"
-#   folder_name: "Instagram Channel Analysis"
+# Google Drive 설정 (Step 5)
+drive:
+  credentials_file: "config/credentials.json"  # 서비스 계정 JSON 키 경로
+  folder_name: "Instagram Channel Analysis"     # Drive 루트 폴더명

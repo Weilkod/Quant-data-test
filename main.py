@@ -205,6 +205,20 @@ def main() -> None:
     except Exception as e:
         logger.error("보고서 생성 실패: %s", e)
 
+    # 4단계: Google Drive 업로드 (--no-upload면 건너뜀)
+    if not args.no_upload:
+        from drive_uploader import upload_to_drive
+
+        try:
+            success = upload_to_drive(channel, data_dir)
+            if not success:
+                logger.warning("Google Drive 업로드 실패 — 로컬 파일은 유지됩니다")
+        except Exception as e:
+            logger.error("Google Drive 업로드 중 오류: %s", e)
+            logger.info("로컬 파일은 유지됩니다: %s", data_dir)
+    else:
+        logger.info("--no-upload 모드: Google Drive 업로드 건너뜀")
+
     logger.info("파이프라인 완료 — @%s", channel)
 
 

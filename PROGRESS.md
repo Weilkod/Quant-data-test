@@ -8,7 +8,7 @@
 - [x] main.py 통합 (collector → estimator → analyzer → reporter 연결)
 
 ## 진행중
-- [ ] drive_uploader.py
+- [x] drive_uploader.py — 서비스 계정 인증, 3회 지수 백오프, 폴더 자동 생성
 - [ ] app.py (Streamlit UI)
 
 ## 브랜치 현황
