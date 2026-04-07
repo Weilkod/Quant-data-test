@@ -9,3 +9,4 @@ seaborn>=0.13
 google-api-python-client>=2.0
 google-auth>=2.0
 streamlit>=1.38
+customtkinter>=5.2
