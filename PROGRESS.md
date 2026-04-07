@@ -4,18 +4,15 @@
 - [x] collector.py — instagrapi 수집, 세션 관리, 429 retry
 - [x] estimator.py — 순수 함수, coefficients.yaml 기반 추정
 - [x] analyzer.py — Claude API (Haiku/Sonnet), 캐싱, 배치 처리
+- [x] reporter.py — PPT 19슬라이드, matplotlib 차트 7종, 3모드 대응
+- [x] main.py 통합 (collector → estimator → analyzer → reporter 연결)
 
 ## 진행중
-- [ ] reporter.py — PPT/HTML 리포트 생성 (claude/setup-collector-no-ai-UlkrO 세션)
 - [ ] drive_uploader.py
-- [ ] main.py 통합 (모든 플래그 연결)
 - [ ] app.py (Streamlit UI)
 
 ## 브랜치 현황
-| 브랜치 | 작업 내용 |
-|--------|-----------|
-| claude/setup-collector-no-ai-UlkrO | reporter.py 작성 중 |
-| claude/auto-session-logging-vkIZr | SessionStart hook 설정 |
+모든 작업 main에 머지 완료. 피처 브랜치 정리됨.
 
 ## 주요 결정 사항
 - 댓글 수집 기본 비활성화 (`--with-comments` 플래그로만 활성화)
