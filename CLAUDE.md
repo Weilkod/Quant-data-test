@@ -63,6 +63,11 @@ Flow: instagrapi → pandas → Claude API → python-pptx/Jinja2 → Google Dri
 - Committing `/data/`, `.env`, `config/credentials.json`, `config/config.yaml` to git
 - Regex parsing of Claude API responses
 
+## Progress Tracking
+- **코드 변경 커밋 시 `PROGRESS.md`도 반드시 함께 업데이트** — 테스트 개수, 완료 항목, 새 기능 등 반영
+- 테스트 추가/삭제 시 해당 모듈의 테스트 개수와 총 개수를 갱신
+- 새 기능·버그 수정 완료 시 "완료된 단계" 또는 "진행중" 섹션에 항목 추가
+
 ## Config
 All runtime config in `config/config.yaml` (gitignored). Provide `config.yaml.example` in repo.
 Coefficients in `config/coefficients.yaml` (committed, with source citations).
