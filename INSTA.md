@@ -10,7 +10,7 @@
 - **분석 목적**: 경쟁 채널 벤치마킹 및 자사 콘텐츠 전략 수립 근거 확보
 - **분석 기간**: YYYY.MM.DD ~ YYYY.MM.DD (최근 게시물 기준, 권장 3~6개월)
 - **분석 대상 채널**: @계정명
-- **데이터 수집 방법**: Instaloader (Python 오픈소스, 무료) — 상세 사양은 부록 D 참조
+- **데이터 수집 방법**: instagrapi (Python 오픈소스, 무료) — 상세 사양은 부록 D 참조
 - **분석 엔진**: Claude API (텍스트 분석 + Vision 이미지 분석)
 - **핵심 요약 (Executive Summary)**: 보고서 전체 내용을 3~5문장으로 압축
 
@@ -659,7 +659,7 @@ python main.py @target_channel --industry auto  # AI가 채널 분석 후 카테
 
 ```
 @채널명 입력
-  → [1단계] Instaloader: 프로필·게시물·댓글·이미지 수집     ← 항상 실행
+  → [1단계] instagrapi: 프로필·게시물·댓글·이미지 수집      ← 항상 실행
   → [2단계] pandas: 데이터 정제 + 통계 산출 + 추정치 계산   ← 항상 실행
   → [3단계] Claude API: 텍스트 분석 + Vision 이미지 분석    ← --no-ai 시 건너뜀
   → [4단계] python-pptx + Jinja2: PPT/HTML 보고서 생성      ← 항상 실행
@@ -704,65 +704,65 @@ python main.py @target_channel --industry auto  # AI가 채널 분석 후 카테
 | 정식 분석 | 기본 | 클라이언트 제출용 완전한 보고서 |
 | 기존 데이터 재분석 | `--skip-collect` | 프롬프트 개선 후 분석만 다시 돌릴 때 |
 
-#### D-2. 데이터 수집 — Instaloader
+#### D-2. 데이터 수집 — instagrapi
 
 | 항목 | 내용 |
 |------|------|
-| 도구명 | Instaloader |
+| 도구명 | instagrapi |
 | 유형 | Python 오픈소스 라이브러리 (MIT 라이선스) |
-| 설치 | `pip install instaloader` |
-| GitHub | https://github.com/instaloader/instaloader |
+| 설치 | `pip install instagrapi` |
+| GitHub | https://github.com/subzeroid/instagrapi |
 | 비용 | 무료 |
 | 요구 환경 | Python 3.8+, 로컬 또는 자체 서버 |
 
 **수집 가능 데이터 및 보고서 섹션 매핑**:
 
-| 수집 데이터 | Instaloader 메서드/속성 | 보고서 적용 섹션 |
+| 수집 데이터 | instagrapi 메서드/속성 | 보고서 적용 섹션 |
 |-----------|----------------------|---------------|
-| 프로필 정보 (팔로워, Bio, 링크 등) | `Profile.from_username()` → `.followers`, `.biography`, `.external_url` | §2 채널 프로필 |
-| 게시물 캡션 | `Post.caption` | §4 콘텐츠 전략, §8 해시태그 |
-| 해시태그 | `Post.caption_hashtags` | §8 해시태그 전략 |
-| 멘션 | `Post.caption_mentions` | §4 콘텐츠 전략 |
-| 좋아요 수 | `Post.likes` | §4, §6 인기 게시물, 추정치 산출 |
-| 댓글 수 | `Post.comments` | §4, §6 인기 게시물 |
-| 댓글 텍스트 + 작성자 + 시간 | `Post.get_comments()` → `.text`, `.owner`, `.created_at_utc` | §3 오디언스 추정, §6 감성 분석 |
-| 게시 날짜/시간 | `Post.date_utc` | §7 게시 빈도 & 타이밍 |
-| 게시물 유형 | `Post.typename` (GraphImage/GraphSidecar/GraphVideo) | §4 포맷별 분석 |
-| 이미지 다운로드 | `instaloader.download_post()` | §5 비주얼 톤 분석 |
-| 영상 썸네일 URL | `Post.url` | §5 비주얼 톤 분석 |
-| 캐러셀 슬라이드 수 | `Post.mediacount` | §4 포맷별 분석 |
-| 팔로워 수 | `Profile.followers` | 추정치 산출 기준 |
-| 팔로잉 수 | `Profile.followees` | §2 채널 프로필 |
-| 게시물 총 수 | `Profile.mediacount` | §2 채널 프로필 |
-| 프로필 사진 | `Profile.profile_pic_url` | §2 채널 프로필 |
-| 계정 인증 배지 | `Profile.is_verified` | §2 채널 프로필 |
-| 비즈니스 카테고리 | `Profile.business_category_name` | §2 채널 프로필 |
+| 프로필 정보 (팔로워, Bio, 링크 등) | `Client.user_info_by_username()` → `.follower_count`, `.biography`, `.external_url` | §2 채널 프로필 |
+| 게시물 캡션 | `Media.caption_text` | §4 콘텐츠 전략, §8 해시태그 |
+| 해시태그 | regex 추출 from `caption_text` | §8 해시태그 전략 |
+| 멘션 | regex 추출 from `caption_text` | §4 콘텐츠 전략 |
+| 좋아요 수 | `Media.like_count` | §4, §6 인기 게시물, 추정치 산출 |
+| 댓글 수 | `Media.comment_count` | §4, §6 인기 게시물 |
+| 댓글 텍스트 + 작성자 + 시간 | `Client.media_comments()` → `.text`, `.user.username`, `.created_at_utc` | §3 오디언스 추정, §6 감성 분석 |
+| 게시 날짜/시간 | `Media.taken_at` | §7 게시 빈도 & 타이밍 |
+| 게시물 유형 | `Media.media_type` (1=Image, 2=Video, 8=Sidecar) | §4 포맷별 분석 |
+| 이미지 다운로드 | `Client.photo_download()` / `Client.album_download()` | §5 비주얼 톤 분석 |
+| 영상 썸네일 URL | `Media.thumbnail_url` | §5 비주얼 톤 분석 |
+| 캐러셀 슬라이드 수 | `len(Media.resources)` | §4 포맷별 분석 |
+| 팔로워 수 | `UserInfo.follower_count` | 추정치 산출 기준 |
+| 팔로잉 수 | `UserInfo.following_count` | §2 채널 프로필 |
+| 게시물 총 수 | `UserInfo.media_count` | §2 채널 프로필 |
+| 프로필 사진 | `UserInfo.profile_pic_url` | §2 채널 프로필 |
+| 계정 인증 배지 | `UserInfo.is_verified` | §2 채널 프로필 |
+| 비즈니스 카테고리 | `UserInfo.category_name` | §2 채널 프로필 |
 
 **실행 예시 (Python)**:
 
 ```python
-import instaloader
+from instagrapi import Client
+import time
 
-L = instaloader.Instaloader()
-profile = instaloader.Profile.from_username(L.context, "omuk_food")
+cl = Client()
+cl.login("username", "password")
+user_info = cl.user_info_by_username("omuk_food")
 
 # 프로필 정보
-print(f"팔로워: {profile.followers}")
-print(f"Bio: {profile.biography}")
+print(f"팔로워: {user_info.follower_count}")
+print(f"Bio: {user_info.biography}")
 
 # 최근 게시물 200개 수집
+medias = cl.user_medias(user_info.pk, amount=200)
 posts = []
-for i, post in enumerate(profile.get_posts()):
-    if i >= 200:
-        break
+for media in medias:
     posts.append({
-        "date": post.date_utc,
-        "caption": post.caption,
-        "likes": post.likes,
-        "comments": post.comments,
-        "type": post.typename,
-        "hashtags": post.caption_hashtags,
-        "url": post.url
+        "date": media.taken_at,
+        "caption": media.caption_text,
+        "likes": media.like_count,
+        "comments": media.comment_count,
+        "type": media.media_type,  # 1=Image, 2=Video, 8=Sidecar
+        "url": str(media.thumbnail_url)
     })
     time.sleep(2)  # IP 차단 방지 딜레이
 ```
@@ -774,10 +774,10 @@ for i, post in enumerate(profile.get_posts()):
 | 요청 간 딜레이 | 2~3초 | Instagram 속도 제한 우회 |
 | 1회 수집 게시물 수 | 최대 200개 | 과도한 요청 방지 |
 | 로그인 여부 | 로그인 권장 | 비로그인 시 수집 제한 더 엄격 |
-| 세션 재사용 | `L.load_session_from_file()` | 반복 로그인 방지 |
+| 세션 재사용 | `Client.load_settings()` / `Client.login()` | 반복 로그인 방지 |
 | 프록시 | 대량 수집 시 권장 | 동일 IP 차단 우회 |
 
-**Instaloader 한계**:
+**instagrapi 한계**:
 
 | 한계 | 대안 |
 |------|------|
@@ -867,7 +867,7 @@ for i, post in enumerate(profile.get_posts()):
 ├── docs/
 │   └── 보고서_구성안.md              ← 이 문서
 ├── src/
-│   ├── collector.py                 ← Instaloader 수집 모듈
+│   ├── collector.py                 ← instagrapi 수집 모듈
 │   ├── analyzer.py                  ← Claude API 분석 모듈
 │   ├── estimator.py                 ← 추정치 산출 모듈
 │   ├── reporter.py                  ← PPT/HTML 보고서 생성 모듈
@@ -961,7 +961,7 @@ __pycache__/
 **파이프라인 데이터 흐름**:
 
 ```
-[수집] Instaloader → 로컬 /data/raw/
+[수집] instagrapi → 로컬 /data/raw/
   ↓
 [정제] pandas → 로컬 /data/raw/ (CSV 정리)
   ↓
@@ -1003,19 +1003,19 @@ __pycache__/
 
 #### D-7. 대안 수집 도구 (확장 시 참고)
 
-Instaloader로 한계가 생기거나, 웹앱으로 확장할 때 전환 가능한 도구들:
+instagrapi로 한계가 생기거나, 웹앱으로 확장할 때 전환 가능한 도구들:
 
 | 도구 | 유형 | 비용 | 장점 | 단점 | 전환 시나리오 |
 |------|------|:----:|------|------|------------|
 | **Apify** | 클라우드 스크래핑 API | $29/월~ | API 호출만으로 수집, 서버리스 호환, 웹훅 지원 | 유료, 채널당 ~$3 | 웹앱 배포 시 서버리스 환경 필요할 때 |
-| **Playwright + 커스텀 스크래퍼** | 브라우저 자동화 | 무료 | 완전한 커스터마이징, Instagram UI 변경 대응 가능 | 개발·유지보수 비용 높음, 차단 위험 | Instaloader가 Instagram 업데이트로 작동 중단 시 |
+| **Playwright + 커스텀 스크래퍼** | 브라우저 자동화 | 무료 | 완전한 커스터마이징, Instagram UI 변경 대응 가능 | 개발·유지보수 비용 높음, 차단 위험 | instagrapi가 Instagram 업데이트로 작동 중단 시 |
 | **SociaVault API** | 서드파티 REST API | 유료 | REST API 형태로 가장 단순한 연동, OAuth 불필요 | 서비스 안정성 불확실 | n8n 등 노코드 도구와 연동 필요 시 |
 | **Phantombuster** | GUI 기반 자동화 | $69/월~ | 비개발자도 사용 가능, 다중 플랫폼 지원 | 가격 대비 수집량 적음, API 유연성 낮음 | 비개발자 팀원이 직접 운영해야 할 때 |
 
 #### D-8. 전체 의존성 요약 (requirements.txt)
 
 ```
-instaloader>=4.13
+instagrapi>=2.0
 anthropic>=0.40.0
 pandas>=2.0
 Pillow>=10.0
@@ -1049,7 +1049,7 @@ streamlit>=1.38
 
 | 순서 | 작업 | 산출물 | 비고 |
 |:---:|------|--------|------|
-| 1-1 | Instaloader 수집 모듈 개발 | `collector.py` | `--no-ai`로 테스트, API 비용 $0 |
+| 1-1 | instagrapi 수집 모듈 개발 | `collector.py` | `--no-ai`로 테스트, API 비용 $0 |
 | 1-2 | pandas 통계·추정치 산출 모듈 | `estimator.py` | 부록 A 공식 구현 |
 | 1-3 | matplotlib 차트 생성 | `charts/` | 빈도, 요일별, 히트맵 등 |
 | 1-4 | Claude API 분석 모듈 (Haiku + Sonnet) | `analyzer.py` | 모델 배정표(D-4) 대로 구현 |

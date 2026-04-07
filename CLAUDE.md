@@ -1,8 +1,8 @@
 # CLAUDE.md — Instagram Channel Analyzer
 
 ## Project Overview
-CLI pipeline: `python main.py @channel [--no-ai|--ai-text-only|--skip-collect|--no-upload]`
-Flow: Instaloader → pandas → Claude API → python-pptx/Jinja2 → Google Drive
+CLI pipeline: `python main.py @channel [--no-ai|--ai-text-only|--skip-collect|--no-upload|--with-comments]`
+Flow: instagrapi → pandas → Claude API → python-pptx/Jinja2 → Google Drive
 
 ## Architecture
 - **5 modules, single responsibility each**: collector (scrape only), analyzer (Claude API only), estimator (pure math, no I/O), reporter (PPT/HTML only), drive_uploader (upload only)
@@ -10,13 +10,14 @@ Flow: Instaloader → pandas → Claude API → python-pptx/Jinja2 → Google Dr
 - Modules communicate via files (`/data/{channel}/raw/`, `analysis/`, `report/`), never direct imports between siblings
 - Each pipeline stage checks previous stage's output files exist before running; exit(1) with clear message if missing
 
-## Instaloader Rules (collector.py)
+## instagrapi Rules (collector.py)
 - **Random delay 2–4s between every request** — never skip
-- Comment pagination: additional 1–2s delay per page
-- Max 200 posts per run; reuse session via `load_session_from_file()`
+- **댓글 수집 기본 비활성화** — `--with-comments` 플래그로 활성화 (Instagram API 제한으로 401 에러 빈발)
+- Comment pagination (활성화 시): additional 1–2s delay per page
+- Max 200 posts per run; reuse session via `Client.load_settings()` / `Client.login()`
 - On 429: wait 60s, retry up to 3x with exponential backoff
 - **Individual post/comment failures → skip & log, never abort pipeline**
-- Save: `raw/profile.json`, `raw/posts.csv`, `raw/comments.csv`, `raw/images/{shortcode}.jpg`
+- Save: `raw/profile.json`, `raw/posts.csv`, `raw/images/{shortcode}.jpg` (댓글 활성화 시 `raw/comments.csv` 추가)
 
 ## Claude API Rules (analyzer.py)
 **Model assignment (strict):**
@@ -30,6 +31,7 @@ Flow: Instaloader → pandas → Claude API → python-pptx/Jinja2 → Google Dr
 - Batch captions as JSON array in 1 call, not per-post calls
 - Prompts live in `prompts/*.txt`, not inline strings
 - **Vision: resize to ≤1024px before base64 encoding. Max 20 images per call.**
+- **캐러셀 이미지: 게시물당 최대 5장만 수집·분석 (비용 절감)**
 - Cache results to `analysis/{task}.json`; skip re-analysis if file exists unless `--force-reanalyze`
 - Log estimated token count before each call; warn if total pipeline cost > $5
 
@@ -50,10 +52,10 @@ Flow: Instaloader → pandas → Claude API → python-pptx/Jinja2 → Google Dr
 - **Dirs**: call `ensure_dirs(channel)` at pipeline start — create all subdirs with `mkdir(parents=True, exist_ok=True)`
 - **Type hints** on all function signatures
 - **Channel name**: normalize with `channel.lstrip("@")`
-- **Retry policy**: Instaloader 3x exponential (5/15/45s), Claude API 2x (30s fixed), Drive 3x exponential (2/4/8s)
+- **Retry policy**: instagrapi 3x exponential (5/15/45s), Claude API 2x (30s fixed), Drive 3x exponential (2/4/8s)
 
 ## Forbidden
-- Instaloader loop without delay
+- instagrapi loop without delay
 - Hardcoded API keys or secrets
 - `except: pass` or bare except
 - Magic numbers for estimation coefficients

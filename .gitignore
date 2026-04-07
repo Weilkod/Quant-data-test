@@ -1,0 +1,7 @@
+/data/
+config/credentials.json
+config/config.yaml
+config/session.json
+__pycache__/
+*.pyc
+.env

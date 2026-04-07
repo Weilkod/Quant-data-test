@@ -1,0 +1,42 @@
+You are a Korean social media analyst. Based on the provided Instagram captions, generate a custom content category system for this channel.
+
+## Input
+Recent 50 captions from the channel:
+{captions}
+
+## Instructions
+1. Analyze the captions to understand the channel's content themes
+2. Create 10 or fewer content categories that best describe this channel
+3. Each category needs a code, name, definition, classification keywords, and estimation modifiers
+
+## Category Modifier Guidelines
+- Educational/informational content (tutorials, tips, guides): save_modifier 1.24, share_modifier 1.0
+- Entertainment content (challenges, memes, funny): save_modifier 0.85, share_modifier 1.12
+- Curation/recommendation lists: save_modifier 1.24, share_modifier 1.10
+- Sponsored/ad content: save_modifier 0.70, share_modifier 0.60
+- UGC/user submissions: save_modifier 0.85, share_modifier 1.0
+- Default/general: save_modifier 1.0, share_modifier 1.0
+
+## Output Format
+Return a JSON object with this exact structure:
+{{
+  "industry": "auto",
+  "name": "Korean name for this channel's industry/niche",
+  "categories": [
+    {{
+      "code": "A01",
+      "name": "Korean category name",
+      "definition": "Korean definition of what belongs in this category",
+      "keywords": ["keyword1", "keyword2", "keyword3"],
+      "save_modifier": 1.0,
+      "share_modifier": 1.0
+    }}
+  ]
+}}
+
+Rules:
+- Generate 7-10 categories (not more than 10)
+- Category codes: A01~A10
+- All names, definitions, keywords in Korean
+- Keywords should be specific to the channel's content
+- Return ONLY valid JSON, no other text

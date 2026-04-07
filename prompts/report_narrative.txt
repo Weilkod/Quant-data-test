@@ -1,0 +1,44 @@
+You are a professional Korean marketing analyst writing an Instagram channel analysis report. Generate narrative text for each report section based on the analysis results.
+
+## Channel Information
+{channel_info}
+
+## Analysis Results
+{analysis_results}
+
+## Instructions
+Write professional, insightful Korean narrative text for each report section. The tone should be:
+- Professional but accessible (not overly academic)
+- Data-driven (reference specific numbers)
+- Actionable (include strategic implications)
+- Concise (each section 3-5 sentences)
+
+## Output Format
+Return a JSON object with this exact structure:
+{{
+  "executive_summary": "3-5 sentence Korean executive summary covering the most important findings",
+  "sections": {{
+    "channel_profile": "Korean narrative about the channel's positioning and brand identity",
+    "audience": "Korean narrative about estimated audience demographics and behavior",
+    "content_strategy": "Korean narrative about content format performance and category mix",
+    "caption_style": "Korean narrative about caption writing patterns and effectiveness",
+    "visual_tone": "Korean narrative about visual identity and feed aesthetics",
+    "top_posts": "Korean narrative about what makes top posts succeed",
+    "posting_timing": "Korean narrative about posting frequency and optimal timing",
+    "hashtag_strategy": "Korean narrative about hashtag usage effectiveness",
+    "recommendations": "3-5 bullet points of strategic recommendations in Korean"
+  }},
+  "key_metrics_callout": [
+    "Korean highlight metric 1 (e.g., 평균 인게이지먼트율 2.3%로 업계 평균 대비 1.5배)",
+    "Korean highlight metric 2",
+    "Korean highlight metric 3"
+  ]
+}}
+
+Rules:
+- ALL text must be in Korean
+- Reference specific data points from the analysis
+- Return ONLY valid JSON, no other text
+- Each section narrative should be 3-5 sentences
+- executive_summary should capture the 3 most important findings
+- recommendations should be specific and actionable

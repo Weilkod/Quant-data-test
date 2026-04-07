@@ -1,0 +1,24 @@
+# 인스타그램 채널 분석기 설정 파일
+# 이 파일을 config/config.yaml으로 복사한 후 값을 채워주세요.
+# config.yaml은 .gitignore에 포함되어 커밋되지 않습니다.
+
+instagram:
+  username: ""                # 인스타그램 로그인 계정
+  password: ""                # 인스타그램 비밀번호
+  session_file: "config/session.json"  # 세션 파일 경로 (자동 생성됨)
+  max_posts: 20               # 1회 수집 최대 게시물 수 (운영 시 200 권장)
+  delay_min: 2                # 요청 간 최소 딜레이 (초)
+  delay_max: 4                # 요청 간 최대 딜레이 (초)
+  comment_delay_min: 1        # 댓글 페이지네이션 추가 딜레이 최소 (초)
+  comment_delay_max: 2        # 댓글 페이지네이션 추가 딜레이 최대 (초)
+  retry_on_429: 3             # 429 에러 시 최대 재시도 횟수
+  retry_wait_base: 60         # 429 에러 시 기본 대기 시간 (초)
+
+# Claude API 설정 (Step 3에서 사용)
+# claude:
+#   api_key: ""
+
+# Google Drive 설정 (Step 5에서 사용)
+# drive:
+#   credentials_file: "config/credentials.json"
+#   folder_name: "Instagram Channel Analysis"
