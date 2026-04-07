@@ -317,7 +317,7 @@ def _collect_posts(
         if posts_data:
             df = pd.DataFrame(posts_data)
             output_path = raw_dir / "posts.csv"
-            df.to_csv(output_path, index=False, encoding="utf-8")
+            df.to_csv(output_path, index=False, encoding="utf-8-sig")
             logger.info("게시물 저장 완료: %d개 → %s", len(posts_data), output_path)
 
     return posts_data
@@ -403,7 +403,7 @@ def _collect_comments(
         # 댓글 데이터 저장 (비어있어도 빈 CSV 생성)
         df = pd.DataFrame(all_comments)
         output_path = raw_dir / "comments.csv"
-        df.to_csv(output_path, index=False, encoding="utf-8")
+        df.to_csv(output_path, index=False, encoding="utf-8-sig")
         logger.info("댓글 저장 완료: %d개 → %s", len(all_comments), output_path)
 
 
