@@ -10,6 +10,17 @@
 ## 진행중
 - [x] drive_uploader.py — 서비스 계정 인증, 3회 지수 백오프, 폴더 자동 생성
 - [x] app.py — Streamlit UI (채널 입력, 업종 선택, 옵션, 진행 바, 다운로드)
+- [x] presets/beauty.yaml — B01~B10 카테고리, 저장/공유 보정 계수
+- [x] presets/fashion.yaml — S01~S10 카테고리, 저장/공유 보정 계수
+- [x] MD 파일 정합성 수정 — CLAUDE.md 참조 경로, INSTA.md D-5 구조도 실제에 맞게 수정
+
+## 테스트 현황 (162개 전부 통과)
+- [x] test_estimator.py — 45개: 포맷 매핑, 팔로워 티어 경계값, 추정 계수, enrichment
+- [x] test_analyzer.py — 38개: 프롬프트 로딩, 프리셋 로딩, 토큰 추정, 캐싱, 모델 배정
+- [x] test_collector.py — 24개: 설정 로딩, 지수 백오프, 비공개 계정 거부, 댓글 플래그
+- [x] test_reporter.py — 21개: JSON/CSV 안전 로딩, 빈 데이터 처리, PPT 전체 생성
+- [x] test_drive_uploader.py — 15개: 폴더 관리, 재시도 설정, 인증 실패 처리
+- [x] test_main.py — 19개: CLI 인자 파싱, 채널명 정규화, 디렉토리 생성, 로깅
 
 ## 브랜치 현황
 모든 작업 main에 머지 완료. 피처 브랜치 정리됨.
