@@ -15,11 +15,12 @@
 - [x] MD 파일 정합성 수정 — CLAUDE.md 참조 경로, INSTA.md D-5 구조도 실제에 맞게 수정
 - [x] 429 rate limit fix — 프록시 지원, RetryError 포착, 프로필 fallback, request_timeout
 - [x] app.py — API 설정 "입력 완료" 버튼 추가 (자격증명 저장 확인 UX 개선)
+- [x] collector.py — IP 차단 에러 감지, 조치 안내 메시지, 세션 파일 백업
 
-## 테스트 현황 (168개 전부 통과)
+## 테스트 현황 (175개 전부 통과)
 - [x] test_estimator.py — 45개: 포맷 매핑, 팔로워 티어 경계값, 추정 계수, enrichment
 - [x] test_analyzer.py — 38개: 프롬프트 로딩, 프리셋 로딩, 토큰 추정, 캐싱, 모델 배정
-- [x] test_collector.py — 30개: 설정 로딩, 지수 백오프, 비공개 계정 거부, 댓글 플래그, 프록시, RetryError
+- [x] test_collector.py — 37개: 설정 로딩, 지수 백오프, 비공개 계정 거부, 댓글 플래그, 프록시, RetryError, IP 차단 감지
 - [x] test_reporter.py — 21개: JSON/CSV 안전 로딩, 빈 데이터 처리, PPT 전체 생성
 - [x] test_drive_uploader.py — 15개: 폴더 관리, 재시도 설정, 인증 실패 처리
 - [x] test_main.py — 19개: CLI 인자 파싱, 채널명 정규화, 디렉토리 생성, 로깅

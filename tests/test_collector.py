@@ -44,8 +44,10 @@ sys.modules.setdefault("requests.exceptions", _requests_exceptions_mock)
 from collector import (
     _DEFAULT_CONFIG,
     _MEDIA_TYPE_MAP,
+    IPBlockedError,
     _cleanup_temp_files,
     _create_client,
+    _is_ip_blocked_error,
     _load_config,
     _retry_on_error,
     collect,
@@ -465,6 +467,88 @@ class TestProxyConfig(unittest.TestCase):
         config = {"instagram": {**_DEFAULT_CONFIG["instagram"]}}
         _create_client(config)
         self.assertEqual(mock_cl.request_timeout, 15)
+
+
+# ──────────────────────────────────────────────
+# IP 차단 감지
+# ──────────────────────────────────────────────
+
+
+class TestIPBlockedDetection(unittest.TestCase):
+    """IP 차단 에러 감지 및 처리 테스트"""
+
+    def test_blacklist_keyword_detected(self):
+        """'blacklist' 키워드가 포함된 에러 감지"""
+        err = Exception(
+            "change your IP address, because it is added to the blacklist"
+        )
+        self.assertTrue(_is_ip_blocked_error(err))
+
+    def test_change_ip_keyword_detected(self):
+        """'change your ip' 키워드 감지"""
+        err = Exception("Please change your IP and try again")
+        self.assertTrue(_is_ip_blocked_error(err))
+
+    def test_ip_blocked_keyword_detected(self):
+        """'ip has been blocked' 키워드 감지"""
+        err = Exception("Your IP has been blocked by Instagram")
+        self.assertTrue(_is_ip_blocked_error(err))
+
+    def test_normal_error_not_detected(self):
+        """일반 에러는 IP 차단으로 감지되지 않음"""
+        err = Exception("Invalid password")
+        self.assertFalse(_is_ip_blocked_error(err))
+
+    @patch("collector.Client")
+    def test_login_raises_ip_blocked_error(self, mock_client_cls):
+        """로그인 시 IP 차단이면 IPBlockedError 발생"""
+        mock_cl = MagicMock()
+        mock_client_cls.return_value = mock_cl
+        mock_cl.login.side_effect = Exception(
+            "IP is added to the blacklist of the Instagram Server"
+        )
+
+        config = {"instagram": {
+            **_DEFAULT_CONFIG["instagram"],
+            "username": "test",
+            "password": "pass",
+        }}
+        with self.assertRaises(IPBlockedError):
+            _create_client(config)
+
+    @patch("collector.Client")
+    def test_ip_blocked_suggests_proxy_when_none(self, mock_client_cls):
+        """프록시 미설정 시 프록시 설정 안내 포함"""
+        mock_cl = MagicMock()
+        mock_client_cls.return_value = mock_cl
+        mock_cl.login.side_effect = Exception("blacklist")
+
+        config = {"instagram": {
+            **_DEFAULT_CONFIG["instagram"],
+            "username": "test",
+            "password": "pass",
+            "proxy": "",
+        }}
+        with self.assertRaises(IPBlockedError) as ctx:
+            _create_client(config)
+        self.assertIn("프록시 설정", str(ctx.exception))
+
+    @patch("collector.Client")
+    def test_ip_blocked_with_proxy_suggests_change(self, mock_client_cls):
+        """프록시 설정 상태에서 IP 차단 시 다른 프록시 안내"""
+        mock_cl = MagicMock()
+        mock_client_cls.return_value = mock_cl
+        mock_cl.login.side_effect = Exception("blacklist")
+
+        config = {"instagram": {
+            **_DEFAULT_CONFIG["instagram"],
+            "username": "test",
+            "password": "pass",
+            "proxy": "socks5://user:pass@proxy.example.com:1080",
+        }}
+        with self.assertRaises(IPBlockedError) as ctx:
+            _create_client(config)
+        self.assertIn("다른 프록시", str(ctx.exception))
 
 
 if __name__ == "__main__":

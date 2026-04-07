@@ -38,6 +38,44 @@ from instagrapi.exceptions import (
 
 logger = logging.getLogger(__name__)
 
+
+class IPBlockedError(Exception):
+    """Instagram IP 블랙리스트 에러 — 서버 IP가 차단됨."""
+    pass
+
+
+# IP 차단 감지 키워드
+_IP_BLOCK_KEYWORDS = ("blacklist", "change your ip", "ip has been blocked")
+
+
+def _is_ip_blocked_error(error: Exception) -> bool:
+    """예외 메시지에서 Instagram IP 차단 여부를 감지한다."""
+    msg = str(error).lower()
+    return any(kw in msg for kw in _IP_BLOCK_KEYWORDS)
+
+
+def _raise_ip_blocked_error(proxy: str) -> None:
+    """IP 차단 시 조치 방법을 안내하고 IPBlockedError를 발생시킨다."""
+    if proxy:
+        msg = (
+            "Instagram IP 차단 감지 — 현재 프록시로도 차단됨.\n"
+            "조치 방법:\n"
+            "  1. 다른 프록시로 변경 (config/config.yaml → proxy)\n"
+            "  2. 몇 시간 후 재시도\n"
+            "  3. 다른 IP 환경에서 실행"
+        )
+    else:
+        msg = (
+            "Instagram IP 차단 감지 — 서버 IP가 블랙리스트에 추가됨.\n"
+            "조치 방법:\n"
+            "  1. 프록시 설정 (config/config.yaml → proxy: socks5://user:pass@host:port)\n"
+            "  2. 다른 IP 환경(로컬 PC, VPN 등)에서 실행\n"
+            "  3. 몇 시간 후 재시도"
+        )
+    logger.error(msg)
+    raise IPBlockedError(msg)
+
+
 # ──────────────────────────────────────────────
 # 설정 기본값
 # ──────────────────────────────────────────────
@@ -183,6 +221,15 @@ def _create_client(config: dict) -> Client:
                 logger.info("세션 로드 완료 — %s", session_path)
                 return cl
             except Exception as e:
+                if _is_ip_blocked_error(e):
+                    if session_path.exists():
+                        backup = session_path.with_suffix(".json.blocked")
+                        try:
+                            session_path.rename(backup)
+                            logger.warning("세션 파일 백업: %s → %s", session_path, backup)
+                        except OSError:
+                            logger.warning("세션 파일 백업 실패 — 무시하고 계속")
+                    _raise_ip_blocked_error(proxy)
                 logger.warning("세션 로드 실패: %s — 직접 로그인 시도", e)
 
     # 2순위: username/password로 로그인
@@ -199,6 +246,8 @@ def _create_client(config: dict) -> Client:
             logger.error("Instagram 챌린지(인증) 필요 — 브라우저에서 먼저 로그인 후 재시도")
             raise
         except Exception as e:
+            if _is_ip_blocked_error(e):
+                _raise_ip_blocked_error(proxy)
             logger.error("로그인 실패: %s", e)
             raise
 
@@ -562,6 +611,9 @@ def collect(channel: str, data_dir: Path, with_comments: bool = False) -> bool:
     # instagrapi 클라이언트 생성
     try:
         cl = _create_client(config)
+    except IPBlockedError as e:
+        logger.error("Instagram IP 차단으로 수집 불가: %s", e)
+        return False
     except Exception as e:
         logger.error("Instagram 클라이언트 생성 실패: %s", e)
         return False
