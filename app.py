@@ -47,6 +47,7 @@ def _sync_secrets() -> None:
                 "  comment_delay_max: 2\n"
                 "  retry_on_429: 3\n"
                 "  retry_wait_base: 60\n"
+                f'  proxy: "{ig.get("proxy", "")}"\n'
             )
             config_path.write_text(config_content, encoding="utf-8")
 

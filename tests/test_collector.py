@@ -32,10 +32,20 @@ _exceptions_mock.RateLimitError = type("RateLimitError", (Exception,), {})
 sys.modules.setdefault("instagrapi", _instagrapi_mock)
 sys.modules.setdefault("instagrapi.exceptions", _exceptions_mock)
 
+# requests.exceptions mock 생성 (collector import 전에 설정 필요)
+_requests_mock = types.ModuleType("requests")
+_requests_exceptions_mock = types.ModuleType("requests.exceptions")
+_RetryError = type("RetryError", (Exception,), {})
+_requests_exceptions_mock.RetryError = _RetryError
+_requests_mock.exceptions = _requests_exceptions_mock
+sys.modules.setdefault("requests", _requests_mock)
+sys.modules.setdefault("requests.exceptions", _requests_exceptions_mock)
+
 from collector import (
     _DEFAULT_CONFIG,
     _MEDIA_TYPE_MAP,
     _cleanup_temp_files,
+    _create_client,
     _load_config,
     _retry_on_error,
     collect,
@@ -379,6 +389,82 @@ class TestDefaultConfig(unittest.TestCase):
     def test_max_posts_default(self):
         """기본 최대 게시물 수"""
         self.assertEqual(_DEFAULT_CONFIG["instagram"]["max_posts"], 20)
+
+
+# ──────────────────────────────────────────────
+# RetryError 처리 테스트
+# ──────────────────────────────────────────────
+
+
+class TestRetryOnRetryError(unittest.TestCase):
+    """requests.exceptions.RetryError 재시도 테스트"""
+
+    @patch("collector.time.sleep")
+    def test_retry_error_triggers_retry(self, mock_sleep):
+        """RetryError(instagrapi 내부 재시도 소진)도 재시도 대상"""
+        func = MagicMock(side_effect=[_RetryError("too many 429"), "ok"])
+        result = _retry_on_error(func, 3, 0)
+        self.assertEqual(result, "ok")
+        self.assertEqual(func.call_count, 2)
+
+    @patch("collector.time.sleep")
+    def test_retry_error_all_exhausted(self, mock_sleep):
+        """RetryError로 모든 재시도 소진 시 예외 발생"""
+        func = MagicMock(side_effect=_RetryError("too many 429"))
+        with self.assertRaises(_RetryError):
+            _retry_on_error(func, 2, 0)
+        self.assertEqual(func.call_count, 3)
+
+
+# ──────────────────────────────────────────────
+# 프록시 설정 테스트
+# ──────────────────────────────────────────────
+
+
+class TestProxyConfig(unittest.TestCase):
+    """프록시 설정 테스트"""
+
+    def test_default_config_has_proxy_field(self):
+        """기본 설정에 proxy 필드 존재"""
+        self.assertIn("proxy", _DEFAULT_CONFIG["instagram"])
+        self.assertEqual(_DEFAULT_CONFIG["instagram"]["proxy"], "")
+
+    @patch("collector.Client")
+    def test_proxy_set_when_configured(self, mock_client_cls):
+        """proxy가 설정되면 cl.set_proxy() 호출"""
+        mock_cl = MagicMock()
+        mock_client_cls.return_value = mock_cl
+
+        config = {
+            "instagram": {
+                **_DEFAULT_CONFIG["instagram"],
+                "proxy": "socks5://user:pass@proxy.example.com:1080",
+            }
+        }
+        _create_client(config)
+        mock_cl.set_proxy.assert_called_once_with(
+            "socks5://user:pass@proxy.example.com:1080"
+        )
+
+    @patch("collector.Client")
+    def test_proxy_not_set_when_empty(self, mock_client_cls):
+        """proxy가 빈 문자열이면 set_proxy() 호출 안 함"""
+        mock_cl = MagicMock()
+        mock_client_cls.return_value = mock_cl
+
+        config = {"instagram": {**_DEFAULT_CONFIG["instagram"], "proxy": ""}}
+        _create_client(config)
+        mock_cl.set_proxy.assert_not_called()
+
+    @patch("collector.Client")
+    def test_request_timeout_set(self, mock_client_cls):
+        """request_timeout이 15로 설정됨"""
+        mock_cl = MagicMock()
+        mock_client_cls.return_value = mock_cl
+
+        config = {"instagram": {**_DEFAULT_CONFIG["instagram"]}}
+        _create_client(config)
+        self.assertEqual(mock_cl.request_timeout, 15)
 
 
 if __name__ == "__main__":

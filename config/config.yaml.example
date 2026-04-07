@@ -13,6 +13,7 @@ instagram:
   comment_delay_max: 2        # 댓글 페이지네이션 추가 딜레이 최대 (초)
   retry_on_429: 3             # 429 에러 시 최대 재시도 횟수
   retry_wait_base: 60         # 429 에러 시 기본 대기 시간 (초)
+  proxy: ""                    # 프록시 URL (예: socks5://user:pass@host:port 또는 http://host:port)
 
 # Claude API 설정 (Step 3에서 사용)
 # claude:
