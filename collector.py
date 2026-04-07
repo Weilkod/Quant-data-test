@@ -45,7 +45,7 @@ _DEFAULT_CONFIG: dict = {
         "username": "",
         "password": "",
         "session_file": "",
-        "max_posts": 200,
+        "max_posts": 20,
         "delay_min": 2,
         "delay_max": 4,
         "comment_delay_min": 1,
