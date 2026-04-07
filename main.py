@@ -196,6 +196,15 @@ def main() -> None:
     else:
         logger.info("--no-ai 모드: AI 분석 건너뜀")
 
+    # 3단계: 보고서 생성 (항상 실행)
+    from reporter import generate_report
+
+    try:
+        report_path = generate_report(channel, data_dir)
+        logger.info("보고서 생성 완료 → %s", report_path)
+    except Exception as e:
+        logger.error("보고서 생성 실패: %s", e)
+
     logger.info("파이프라인 완료 — @%s", channel)
 
 
