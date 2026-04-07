@@ -2,6 +2,7 @@
 config/credentials.json
 config/config.yaml
 config/session.json
+.streamlit/secrets.toml
 __pycache__/
 *.pyc
 .env
