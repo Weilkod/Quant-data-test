@@ -1,0 +1,76 @@
+# 패션 업종 프리셋
+# INSTA.md 부록 B-4 기반
+
+industry: fashion
+name: 패션
+
+categories:
+  - code: S01
+    name: 데일리 룩/OOTD
+    definition: 일상 코디 사진, 출근룩, 데이트룩
+    keywords: [OOTD, 데일리, 코디, 출근룩, 데이트룩]
+    save_modifier: 1.10
+    share_modifier: 1.10
+
+  - code: S02
+    name: 아이템 리뷰/하울
+    definition: 구매 후기, 하울, 착용 리뷰
+    keywords: [리뷰, 하울, 언박싱, 착용, 솔직후기]
+    save_modifier: 1.24
+    share_modifier: 1.0
+
+  - code: S03
+    name: 스타일링 팁/가이드
+    definition: 체형별/시즌별 스타일링 가이드
+    keywords: [스타일링, 꿀팁, 체형별, 키작녀, 코디법]
+    save_modifier: 1.24
+    share_modifier: 1.12
+
+  - code: S04
+    name: 트렌드/시즌 분석
+    definition: 유행 아이템, 컬러, 시즌 트렌드
+    keywords: [트렌드, SS, FW, 올해, 핫한, 유행]
+    save_modifier: 1.0
+    share_modifier: 1.12
+
+  - code: S05
+    name: 가성비/추천 큐레이션
+    definition: 가격대별 추천, 쇼핑몰 추천
+    keywords: [추천, 가성비, TOP, 만원대, 쇼핑몰]
+    save_modifier: 1.24
+    share_modifier: 1.10
+
+  - code: S06
+    name: 럭셔리/하이엔드
+    definition: 명품, 디자이너 브랜드 소개
+    keywords: [명품, 럭셔리, 브랜드, 신상]
+    save_modifier: 1.0
+    share_modifier: 1.0
+
+  - code: S07
+    name: 패션 엔터테인먼트
+    definition: 변신, 챌린지, 밈
+    keywords: [챌린지, 변신, 몰카, 비포애프터]
+    save_modifier: 0.85
+    share_modifier: 1.12
+
+  - code: S08
+    name: 브랜드 협찬/광고
+    definition: 유료 광고, 협찬
+    keywords: ["#광고", "#협찬", "#제공", ad, sponsored]
+    save_modifier: 0.70
+    share_modifier: 0.60
+
+  - code: S09
+    name: UGC/팔로워 코디
+    definition: 팔로워 코디 소개, 리그램
+    keywords: [제보, 태그, 리그램, 팔로워 코디]
+    save_modifier: 0.85
+    share_modifier: 1.0
+
+  - code: S10
+    name: 이벤트/세일 정보
+    definition: 할인, 세일, 쿠폰 정보
+    keywords: [세일, 할인, 쿠폰, 프로모션, 기간한정]
+    save_modifier: 1.0
+    share_modifier: 1.0

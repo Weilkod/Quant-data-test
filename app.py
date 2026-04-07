@@ -9,11 +9,52 @@ CLAUDE.md 규칙:
 
 import json
 import logging
+import os
 import sys
 from pathlib import Path
 
 import pandas as pd
 import streamlit as st
+
+# ──────────────────────────────────────────────
+# Streamlit secrets → 환경변수/config 동기화
+# ──────────────────────────────────────────────
+def _sync_secrets() -> None:
+    """Streamlit Cloud secrets를 환경변수 및 config.yaml에 반영
+
+    secrets.toml 또는 Streamlit Cloud 대시보드에 설정된 시크릿을
+    각 모듈이 읽을 수 있도록 환경변수와 config 파일로 전달합니다.
+    """
+    # Claude API 키 → 환경변수 (anthropic 라이브러리가 자동 인식)
+    if "ANTHROPIC_API_KEY" in st.secrets:
+        os.environ["ANTHROPIC_API_KEY"] = st.secrets["ANTHROPIC_API_KEY"]
+
+    # Instagram 계정 → config.yaml 자동 생성 (collector.py가 읽음)
+    if "instagram" in st.secrets:
+        config_path = Path("config/config.yaml")
+        if not config_path.exists():
+            config_path.parent.mkdir(parents=True, exist_ok=True)
+            ig = st.secrets["instagram"]
+            config_content = (
+                "instagram:\n"
+                f'  username: "{ig.get("username", "")}"\n'
+                f'  password: "{ig.get("password", "")}"\n'
+                '  session_file: "config/session.json"\n'
+                "  max_posts: 20\n"
+                "  delay_min: 2\n"
+                "  delay_max: 4\n"
+                "  comment_delay_min: 1\n"
+                "  comment_delay_max: 2\n"
+                "  retry_on_429: 3\n"
+                "  retry_wait_base: 60\n"
+            )
+            config_path.write_text(config_content, encoding="utf-8")
+
+
+try:
+    _sync_secrets()
+except Exception:
+    pass  # secrets 미설정 시 무시 (로컬 실행 등)
 
 # ──────────────────────────────────────────────
 # 로깅 설정

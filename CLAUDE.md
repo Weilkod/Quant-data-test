@@ -79,10 +79,10 @@ Coefficients in `config/coefficients.yaml` (committed, with source citations).
 ## Streamlit (app.py)
 - Reuse all modules from steps 1-6
 - UI: channel input, industry dropdown, checkbox options, progress bar, download buttons
-- Wireframe: see docs/보고서_구성안.md D-1
+- Wireframe: see INSTA.md D-1
 
 ## Industry Presets
 - `presets/{industry}.yaml` — category definitions + save/share modifiers + competitor list
 - `--industry food|beauty|fashion|auto`
 - `auto`: Claude Sonnet analyzes 50 captions → generates category YAML → saves to `presets/auto_{channel}.yaml`
-- Preset YAML schema: see docs/보고서_구성안.md B-6
+- Preset YAML schema: see INSTA.md B-6
