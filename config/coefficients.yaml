@@ -1,0 +1,15 @@
+# 추정치 산출 계수 (estimator.py에서 사용)
+# 출처: INSTA.md 부록 A 참조
+# Step 2 (estimator.py) 구현 시 채워질 예정
+
+# 포맷별 저장 계수 (저장/좋아요)
+# save_coefficients:
+#   reels: 0.082        # 출처: Sprout Social 2025
+#   carousel: 0.055     # 출처: Zebracat 2025 (전체 평균 x 1.4)
+#   image: 0.028        # 출처: Socialinsider 규모별 비율 역산
+
+# 포맷별 공유 계수 (공유/좋아요)
+# share_coefficients:
+#   reels: 0.189        # 출처: Sprout Social / Statista 2025
+#   carousel: 0.08      # 출처: Dash Social 상대 비율 역산
+#   image: 0.05         # 가장 낮은 공유율
