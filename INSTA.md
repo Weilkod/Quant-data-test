@@ -861,32 +861,42 @@ for media in medias:
 | **로컬 (임시)** | 파이프라인 실행 중 캐시 | 수집·분석 속도, 실행 완료 후 삭제 가능 |
 | **Google Drive (영구)** | 원본 데이터, 이미지, 분석 결과, 최종 보고서 | 영구 보관, 팀 공유, 15GB 무료 |
 
-**① GitHub 레포 구조** (`instagram-channel-analyzer/`):
+**① GitHub 레포 구조** (`Insta_analyse/`):
 
 ```
-├── docs/
-│   └── 보고서_구성안.md              ← 이 문서
-├── src/
-│   ├── collector.py                 ← instagrapi 수집 모듈
-│   ├── analyzer.py                  ← Claude API 분석 모듈
-│   ├── estimator.py                 ← 추정치 산출 모듈
-│   ├── reporter.py                  ← PPT/HTML 보고서 생성 모듈
-│   ├── drive_uploader.py            ← Google Drive 업로드 모듈
-│   └── main.py                      ← CLI 진입점 (python main.py @omuk_food)
+├── INSTA.md                          ← 보고서 구성안 (이 문서)
+├── CLAUDE.md                         ← 개발 규칙 및 아키텍처
+├── PROGRESS.md                       ← 진행 상황 추적
+├── collector.py                      ← instagrapi 수집 모듈
+├── analyzer.py                       ← Claude API 분석 모듈
+├── estimator.py                      ← 추정치 산출 모듈
+├── reporter.py                       ← PPT 보고서 생성 모듈
+├── drive_uploader.py                 ← Google Drive 업로드 모듈
+├── main.py                           ← CLI 진입점 (python main.py @omuk_food)
 ├── app.py                            ← Streamlit UI 진입점 (streamlit run app.py)
-├── presets/                          ← 업종 프리셋 YAML 파일
-│   ├── food.yaml                    ← 푸드 미디어 프리셋
-│   ├── beauty.yaml                  ← 뷰티 프리셋
-│   └── fashion.yaml                 ← 패션 프리셋
-├── templates/
-│   ├── report_template.pptx         ← PPT 마스터 템플릿
-│   └── report_template.html         ← HTML 보고서 템플릿
+├── presets/                           ← 업종 프리셋 YAML 파일
+│   ├── food.yaml                     ← 푸드 미디어 프리셋
+│   ├── beauty.yaml                   ← 뷰티 프리셋
+│   └── fashion.yaml                  ← 패션 프리셋
+├── prompts/                           ← Claude API 프롬프트 텍스트
+│   ├── categorize_captions.txt
+│   ├── analyze_caption_style.txt
+│   ├── sentiment_analysis.txt
+│   ├── age_estimation.txt
+│   ├── visual_analysis.txt
+│   ├── top_posts_insights.txt
+│   ├── report_narrative.txt
+│   └── auto_categories.txt
 ├── config/
-│   ├── credentials.json             ← Google Drive 서비스 계정 키 (⚠️ .gitignore)
-│   └── config.yaml                  ← API 키, 기본 설정 (⚠️ .gitignore)
+│   ├── coefficients.yaml             ← 추정 계수 (커밋됨, 출처 포함)
+│   ├── config.yaml.example           ← 설정 템플릿
+│   ├── credentials.json              ← Google Drive 서비스 계정 키 (⚠️ .gitignore)
+│   └── config.yaml                   ← API 키, 기본 설정 (⚠️ .gitignore)
+├── tests/
+│   ├── test_estimator.py
+│   └── test_analyzer.py
 ├── requirements.txt
-├── .gitignore
-└── README.md
+└── .gitignore
 ```
 
 **`.gitignore`**:

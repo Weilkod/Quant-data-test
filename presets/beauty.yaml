@@ -1,0 +1,76 @@
+# 뷰티 업종 프리셋
+# INSTA.md 부록 B-3 기반
+
+industry: beauty
+name: 뷰티
+
+categories:
+  - code: B01
+    name: 제품 리뷰/언박싱
+    definition: 화장품/스킨케어 신제품 리뷰
+    keywords: [리뷰, 언박싱, 신제품, 솔직후기]
+    save_modifier: 1.24
+    share_modifier: 1.0
+
+  - code: B02
+    name: 메이크업 튜토리얼
+    definition: 단계별 메이크업 가이드
+    keywords: [튜토리얼, 따라하기, 데일리, 겟레디윗미, GRWM]
+    save_modifier: 1.24
+    share_modifier: 1.12
+
+  - code: B03
+    name: 스킨케어 루틴/성분 분석
+    definition: 피부관리 루틴, 성분 해설
+    keywords: [루틴, 성분, 피부타입, 모닝, 나이트]
+    save_modifier: 1.24
+    share_modifier: 1.0
+
+  - code: B04
+    name: 비포/애프터 변신
+    definition: 변환 콘텐츠, 극적 비교
+    keywords: [비포애프터, 변신, 반전, 전후비교]
+    save_modifier: 0.85
+    share_modifier: 1.12
+
+  - code: B05
+    name: 뷰티 추천 큐레이션
+    definition: 가격대별/피부타입별 추천 리스트
+    keywords: [추천, TOP, 가성비, 픽, 대 추천]
+    save_modifier: 1.24
+    share_modifier: 1.10
+
+  - code: B06
+    name: 뷰티 트렌드/신상
+    definition: 시즌 트렌드, 유행 컬러/스타일
+    keywords: [트렌드, 올해, 신상, 핫한, SS, FW]
+    save_modifier: 1.0
+    share_modifier: 1.12
+
+  - code: B07
+    name: 뷰티 엔터테인먼트/챌린지
+    definition: 재미 콘텐츠, 챌린지, 밈
+    keywords: [챌린지, 도전, 변신, 몰카]
+    save_modifier: 0.85
+    share_modifier: 1.12
+
+  - code: B08
+    name: 브랜드 협찬/광고
+    definition: 유료 광고, 협찬 콘텐츠
+    keywords: ["#광고", "#협찬", "#제공", ad, sponsored]
+    save_modifier: 0.70
+    share_modifier: 0.60
+
+  - code: B09
+    name: UGC/팔로워 요청
+    definition: 팔로워 요청 메이크업, Q&A
+    keywords: [요청, DM, Q&A, 팔로워 추천]
+    save_modifier: 0.85
+    share_modifier: 1.0
+
+  - code: B10
+    name: 이벤트/프로모션
+    definition: 할인, 기프티콘, 이벤트
+    keywords: [이벤트, 할인, 무료, 증정, 프로모션]
+    save_modifier: 1.0
+    share_modifier: 1.0

@@ -19,6 +19,10 @@
 - 캐러셀 이미지 게시물당 최대 5장
 - Vision 이미지 ≤1024px 리사이즈 후 base64 인코딩
 - Claude 모델: 텍스트 분류 → Haiku, Vision/서사 → Sonnet
+- `--force-reanalyze` 플래그로 캐시된 분석 결과 무시 가능
+- 프로젝트 파일 구조: 루트 레벨 (src/ 폴더 미사용)
+- 프롬프트 외부 파일 관리: `prompts/*.txt` (인라인 문자열 금지)
+- 업종 프리셋: food, beauty, fashion + auto 모드 지원
 
 ## PROGRESS.md 업데이트 방법
 작업 완료 시 해당 항목 `[ ]` → `[x]` 로 변경하고 커밋.
